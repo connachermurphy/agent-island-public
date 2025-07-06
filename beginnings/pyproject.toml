@@ -1,0 +1,23 @@
+[project]
+name = "beginnings"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=0.57.1",
+    "dotenv>=0.9.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.12.2",
+]
+
+[tool.ruff]
+# Enable basic linting rules
+select = ["E", "F", "I"]
+line-length = 88
+
+[tool.ruff.format]
+# Enable formatting
