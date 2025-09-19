@@ -1,0 +1,11 @@
+[project]
+name = "confessionals"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=0.60.0",
+    "dotenv>=0.9.9",
+    "numpy>=2.3.2",
+]
