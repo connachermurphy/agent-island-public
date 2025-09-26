@@ -1,7 +1,5 @@
 # Agent Island: Confessionals
 
-
-
 ## Setup
 
 1. Initialize the project:
