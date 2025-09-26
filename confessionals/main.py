@@ -15,7 +15,7 @@ from utils.utils import load_prompt
 # Constants
 ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
 MAX_TOKENS = 1000
-TEMPERATURE = 0.7
+TEMPERATURE = 1.0
 
 # Response types
 ResponseType = Literal["confessional", "pitch", "vote"]
