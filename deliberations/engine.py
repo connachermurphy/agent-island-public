@@ -9,7 +9,7 @@ from client_factory import ClientFactory
 from history import History
 from player import Player, PlayerConfig
 from round import Round, RoundContext
-from round_phases import phase_pitches
+from round_phases import phase_pitches, phase_votes
 
 
 # TODO: use the GameEngineConfig to structure the .play() method
@@ -46,12 +46,14 @@ class GameEngine:
 
         return players
 
-    def _create_round_context(self, round_index: int) -> RoundContext:
+    def _create_round_context(
+        self, round_index: int, players: List[Player]
+    ) -> RoundContext:
         return RoundContext(
-            players=self.players,
+            round_index=round_index,
+            players=players,
             logger=self.game_config.logger,
             history=self.history,
-            round_index=round_index,
             rules_prompt=self.game_config.rules_prompt,
         )
 
@@ -71,8 +73,9 @@ class GameEngine:
         self.game_config.logger.info(f"{num_players} players")
 
         # Store original set of player IDs in history
+        # TODO: do not conflate player IDs with player objects
         player_ids = [player.config.player_id for player in self.players]
-        self.history.players = player_ids
+        self.history.player_ids = player_ids
 
         #########################################################
         # Start placeholder for game logic
@@ -80,9 +83,29 @@ class GameEngine:
         # Run a generic round with just pitches
         round_index = 1
 
-        round_context = self._create_round_context(round_index)
-        round = Round(context=round_context, phases=[phase_pitches])
+        round_context = self._create_round_context(round_index, self.players)
+        round = Round(context=round_context, phases=[phase_pitches, phase_votes])
         round.play()
+
+        self.game_config.logger.info(
+            f"Vote tally: {round_context.vote_tally} (from engine.py)"
+        )
+
+        self.game_config.logger.info(
+            f"Eliminated player: {round_context.eliminated_player} (from engine.py)"
+        )
+
+        next_round_players = [
+            player
+            for player in self.players
+            if player.config.player_id != round_context.eliminated_player
+        ]
+
+        self.game_config.logger.info(
+            f"Next round players: {[player.config.player_id for player in next_round_players]} (from engine.py)"
+        )
+
+        # TODO: update active players and launch next round
 
         #########################################################
         # End placeholder for game logic

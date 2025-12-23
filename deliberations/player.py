@@ -1,11 +1,8 @@
+import re
 from dataclasses import dataclass
+from typing import Optional
 
 from llm_wrapper import Client
-
-# TODO: add character prompt
-# TODO: add temperature
-# TODO: add max_tokens
-# TODO: add reasoning
 
 
 @dataclass
@@ -35,4 +32,25 @@ class Player:
         )
         return response
 
-    # TODO: add an extract_vote method
+    def extract_vote(
+        self, content: str, valid_player_ids: list[str]
+    ) -> Optional[str]:
+        """
+        Extract vote from player response using structured format
+
+        Args:
+            response (str): The response from the player
+
+        Returns:
+            Optional[str]: The vote from the player (None if no vote is found)
+        """
+
+        # Grab the vote from the within the <vote> tags
+        match = re.search(r"<vote>(.*?)</vote>", content, re.IGNORECASE | re.DOTALL)
+        if match:
+            vote = match.group(1).strip()
+            if vote in valid_player_ids and vote != self.config.player_id:
+                return vote
+
+        # TODO: add warnings
+        return None

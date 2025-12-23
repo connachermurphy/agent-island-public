@@ -68,10 +68,6 @@ if __name__ == "__main__":
 
     rules_prompt = """
 You are a player in a game.
-
-Please say "Banana", and then comment on previous players' responses.
-
-Please limit your response to 25 words at most.
 """
 
     player_configs = [PlayerConfig(**config) for config in player_specs]

@@ -25,13 +25,13 @@ class Event:
 @dataclass
 class RoundLog:
     round_index: int
-    players: List[str]
+    player_ids: List[str]
     events: List[Event] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "round_index": self.round_index,
-            "players": self.players,
+            "player_ids": self.player_ids,
             "events": [event.to_dict() for event in self.events],
         }
 
@@ -40,8 +40,10 @@ class History:
     def __init__(self) -> None:
         self.rounds: Dict[int, RoundLog] = {}
 
-    def start_round(self, round_index: int, players: List[str]) -> None:
-        self.rounds[round_index] = RoundLog(round_index=round_index, players=players[:])
+    def start_round(self, round_index: int, player_ids: List[str]) -> None:
+        self.rounds[round_index] = RoundLog(
+            round_index=round_index, player_ids=player_ids[:]
+        )
 
     def add_event(
         self,
@@ -69,7 +71,7 @@ class History:
         round_index: int,
         heading: str,
         content: str,
-        players: List[str],
+        player_ids: List[str],
     ) -> None:
         self.add_event(
             round_index=round_index,
@@ -77,7 +79,7 @@ class History:
             role="narrator",
             prompt="N/A",
             content=content,
-            visibility=players,
+            visibility=player_ids,
         )
 
     def render_for_player(self, player_id: str) -> str:
