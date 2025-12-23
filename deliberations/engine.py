@@ -73,7 +73,6 @@ class GameEngine:
         self.game_config.logger.info(f"{num_players} players")
 
         # Store original set of player IDs in history
-        # TODO: do not conflate player IDs with player objects
         player_ids = [player.config.player_id for player in self.players]
         self.history.player_ids = player_ids
 
