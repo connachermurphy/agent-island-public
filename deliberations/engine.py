@@ -41,4 +41,8 @@ class GameEngine:
 
         print(f"Number of players: {num_players}")
 
+        for player in self.players:
+            response = player.respond()
+            print(f"Player {player.config.player_id} response: {response}")
+
         pass
