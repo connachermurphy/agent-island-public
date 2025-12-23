@@ -4,6 +4,8 @@ from typing import List
 # TODO: add a GameConfig class that structures the .play() method
 from client_factory import ClientFactory
 from player import Player, PlayerConfig
+from round import Round
+from round_phases import phase_pitches
 
 
 class GameEngine:
@@ -39,10 +41,17 @@ class GameEngine:
 
         num_players = len(self.players)
 
+        # TODO: build out Round class
+        # TODO: built out History class
+        # TODO: use Round and History classes to play the game
         print(f"Number of players: {num_players}")
 
-        for player in self.players:
-            response = player.respond()
-            print(f"Player {player.config.player_id} response: {response}")
+        # Run a generic round with just pitches
+        round = Round(
+            logger=self.logger,
+            phases=[phase_pitches(self.players, self.logger)],
+        )
+
+        round.play()
 
         pass
