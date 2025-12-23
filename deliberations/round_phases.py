@@ -1,10 +1,24 @@
 import random
+from typing import List
 
 from round import RoundContext
 
 
+def get_all_player_ids(context: RoundContext) -> List[str]:
+    return context.active_player_ids + context.eliminated_player_ids
+
+
 def phase_pitches(context: RoundContext) -> None:
-    for player in context.players:
+    if context.final_round:
+        outcome = "win the game"
+    else:
+        outcome = "advance to the next round"
+
+    for player_id in context.active_player_ids:
+        player = next(
+            player for player in context.players if player.config.player_id == player_id
+        )
+
         context.logger.info(f"Player {player.config.player_id} is making their pitch")
         visible_events = context.history.render_for_player(player.config.player_id)
         system_prompt = f"""
@@ -12,7 +26,9 @@ def phase_pitches(context: RoundContext) -> None:
 
 {player.config.character_prompt}
 
-Please make your pitch for why you should advance to the next round. Please limit your response to 25 words at most.
+Please make your pitch for why you should {outcome}. Please limit your response to 25 words at most.
+
+The remaining players are: {context.active_player_ids}.
 
 Other players will be able to see your pitch.
         """
@@ -38,35 +54,43 @@ Other players will be able to see your pitch.
         )
 
 
-# TODO: add phase_confessionals
-
-
 def phase_votes(context: RoundContext) -> None:
     vote_tally: dict[str, int] = {}
 
-    player_ids = context.player_ids()
+    if context.final_round:
+        outcome = "win"
+        voters = context.eliminated_player_ids
+    else:
+        outcome = "eliminate"
+        voters = context.active_player_ids
 
-    for player in context.players:
-        players_ids_excluding_self = [
-            pid for pid in player_ids if pid != player.config.player_id
-        ]
+    candidates = context.active_player_ids
 
-        context.logger.info(f"Player {player.config.player_id} is voting")
-        visible_events = context.history.render_for_player(player.config.player_id)
+    for voter in voters:
+        player = next(
+            player for player in context.players if player.config.player_id == voter
+        )
+        context.logger.info(f"Player {voter} is voting")
+        visible_events = context.history.render_for_player(voter)
+
+        candidates_for_voter = [c for c in candidates if c != voter]
+
         system_prompt = f"""
 {context.rules_prompt}
 
 {player.config.character_prompt}
 
-Please vote for one player to eliminate. You cannot vote for yourself. Please limit your response to 25 words at most.
+Please vote for one player to {outcome}. You cannot vote for yourself.
 
-You must vote for one of the following players: {players_ids_excluding_self}.
+You must vote for one of the following players: {candidates_for_voter}.
 
 Your vote must be of the following format: '<vote>[PLAYER ID]</vote>', or it will be ignored.
 
-Example: '<vote>X</vote>' is a valid vote, but '<vote>[X]</vote>' is not.
+Example: '<vote>X</vote>' is a valid vote, but '<vote>[X]</vote>' and '<vote>XY</vote>' are not.
 
-Other players will not be able to see your vote.
+After you have voted, please provide your reasoning for your vote. Please limit your reasoning to 25 words at most.
+
+Other players will not be able to see your vote or reasoning.
         """
 
         response = player.respond(
@@ -89,21 +113,21 @@ Other players will not be able to see your vote.
             visibility=[player.config.player_id],
         )
 
-        vote = player.extract_vote(response.text, player_ids)
+        vote = player.extract_vote(response.text, candidates_for_voter)
         if vote:
             vote_tally[vote] = vote_tally.get(vote, 0) + 1
 
         context.logger.info(f"Player {player.config.player_id} voted for {vote}")
         context.logger.info(f"Running vote tally: {vote_tally}")
 
-    context.vote_tally = vote_tally
+    context.votes["vote_tally"] = vote_tally
     context.logger.info(f"Final vote tally: {vote_tally}")
 
-    # Find eliminated player
+    # Find selected player
     if not vote_tally:
-        selected_player_id = random.choice(player_ids)
+        selected_player_id = random.choice(candidates)
         context.logger.info(
-            f"No valid votes found. Randomly eliminating Player {selected_player_id}"
+            f"No valid votes found. Randomly selecting Player {selected_player_id}"
         )
     else:
         max_votes = max(vote_tally.values())
@@ -111,12 +135,12 @@ Other players will not be able to see your vote.
         if len(tied_players) == 1:
             selected_player_id = tied_players[0]
             context.logger.info(
-                f"Player {selected_player_id} is eliminated with {max_votes} vote(s)"
+                f"Player {selected_player_id} is selected with {max_votes} vote(s)"
             )
         else:
             selected_player_id = random.choice(tied_players)
             context.logger.info(
-                f"Tie between {tied_players} with {max_votes}. Randomly eliminating Player {selected_player_id}"
+                f"Tie between {tied_players} with {max_votes}. Randomly selecting Player {selected_player_id}"
             )
 
-    context.eliminated_player = selected_player_id
+    context.votes["selected_player"] = selected_player_id
