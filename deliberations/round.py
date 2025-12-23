@@ -35,14 +35,16 @@ class Round:
 
         self.context.history.start_round(
             round_index=self.context.round_index,
-            player_ids=self.context.active_player_ids,
+            final_round=self.context.final_round,
+            active_player_ids=self.context.active_player_ids,
+            eliminated_player_ids=self.context.eliminated_player_ids,
         )
 
         self.context.history.narrate(
             round_index=self.context.round_index,
             heading="Narrator",
             content=f"Welcome to round {self.context.round_index}!",
-            player_ids=all_player_ids,
+            visibility=all_player_ids,
         )
 
         for phase in self.phases:
@@ -53,7 +55,7 @@ class Round:
             round_index=self.context.round_index,
             heading="Narrator",
             content=f"Round {self.context.round_index} complete!",
-            player_ids=all_player_ids,
+            visibility=all_player_ids,
         )
 
         self.context.logger.info(f"Round {self.context.round_index} complete")

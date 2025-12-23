@@ -25,13 +25,17 @@ class Event:
 @dataclass
 class RoundLog:
     round_index: int
-    player_ids: List[str]
+    final_round: bool
+    active_player_ids: List[str]
+    eliminated_player_ids: List[str]
     events: List[Event] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "round_index": self.round_index,
-            "player_ids": self.player_ids,
+            "final_round": self.final_round,
+            "active_player_ids": self.active_player_ids,
+            "eliminated_player_ids": self.eliminated_player_ids,
             "events": [event.to_dict() for event in self.events],
         }
 
@@ -40,9 +44,19 @@ class History:
     def __init__(self) -> None:
         self.rounds: Dict[int, RoundLog] = {}
 
-    def start_round(self, round_index: int, player_ids: List[str]) -> None:
+    def start_round(
+        self,
+        round_index: int,
+        final_round: bool,
+        active_player_ids: List[str],
+        eliminated_player_ids: List[str],
+    ) -> None:
         self.rounds[round_index] = RoundLog(
-            round_index=round_index, player_ids=player_ids[:]
+            round_index=round_index,
+            final_round=final_round,
+            active_player_ids=active_player_ids,
+            eliminated_player_ids=eliminated_player_ids,
+            events=[],
         )
 
     def add_event(
@@ -60,9 +74,9 @@ class History:
                 heading=heading,
                 role=role,
                 prompt=prompt,
-                response=response,
                 content=content,
                 visibility=visibility,
+                response=response,
             )
         )
 
@@ -71,7 +85,7 @@ class History:
         round_index: int,
         heading: str,
         content: str,
-        player_ids: List[str],
+        visibility: List[str],
     ) -> None:
         self.add_event(
             round_index=round_index,
@@ -79,7 +93,7 @@ class History:
             role="narrator",
             prompt="N/A",
             content=content,
-            visibility=player_ids,
+            visibility=visibility,
         )
 
     def render_for_player(self, player_id: str) -> str:
