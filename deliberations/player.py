@@ -11,9 +11,11 @@ from llm_wrapper import Client
 @dataclass
 class PlayerConfig:
     player_id: str
+    character_prompt: str
     provider: str
     model: str
     api_key: str
+    client_kwargs: dict
 
 
 class Player:
@@ -21,11 +23,16 @@ class Player:
         self.config = config
         self.client = client
 
-    def respond(self) -> str:
-        # TODO: add other arguments to the generate method
+    def respond(
+        self,
+        system_prompt: str,
+        messages: list[dict],
+    ) -> str:
         response = self.client.generate(
-            messages=[{"role": "user", "content": "Hello, there!"}]
+            system=system_prompt,
+            messages=messages,
+            **self.config.client_kwargs,
         )
-        return response.text
+        return response
 
     # TODO: add an extract_vote method

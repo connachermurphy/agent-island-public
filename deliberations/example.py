@@ -2,7 +2,7 @@ import logging
 import os
 
 import dotenv
-from engine import GameEngine
+from engine import GameEngine, GameEngineConfig
 from player import PlayerConfig
 
 dotenv.load_dotenv()
@@ -11,7 +11,7 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 MAX_OUTPUT_TOKENS = 1024
-
+LOGS_DIR = "logs"
 
 if __name__ == "__main__":
     # Prepare logger
@@ -22,24 +22,64 @@ if __name__ == "__main__":
     player_specs = [
         {
             "player_id": "A",
+            "character_prompt": "You are player A.",
             "provider": "anthropic",
             "model": "claude-haiku-4-5-20251001",
             "api_key": ANTHROPIC_API_KEY,
+            "client_kwargs": {
+                "max_tokens": 2048,
+                "reasoning": {
+                    "type": "enabled",
+                    "budget_tokens": 1024,
+                },
+            },
         },
         {
             "player_id": "B",
+            "character_prompt": "You are player B.",
             "provider": "openai",
-            "model": "gpt-4o-mini",
+            "model": "gpt-5-nano-2025-08-07",
             "api_key": OPENAI_API_KEY,
+            "client_kwargs": {
+                "max_tokens": 2048,
+                "reasoning": {
+                    "effort": "minimal",
+                    # TODO: add summary after verification
+                    # "summary": "auto",
+                },
+            },
         },
         {
             "player_id": "C",
+            "character_prompt": "You are player C.",
             "provider": "openai",
-            "model": "gpt-4o-mini",
+            "model": "gpt-5-nano-2025-08-07",
             "api_key": OPENAI_API_KEY,
+            "client_kwargs": {
+                "max_tokens": 2048,
+                "reasoning": {
+                    "effort": "minimal",
+                    # TODO: add summary after verification
+                    # "summary": "auto",
+                },
+            },
         },
     ]
 
+    rules_prompt = """
+You are a player in a game.
+
+Please say "Banana", and then comment on previous players' responses.
+
+Please limit your response to 25 words at most.
+"""
+
     player_configs = [PlayerConfig(**config) for config in player_specs]
-    game = GameEngine(logger, player_configs)
+    game_config = GameEngineConfig(
+        logger=logger,
+        player_configs=player_configs,
+        logs_dir=LOGS_DIR,
+        rules_prompt=rules_prompt,
+    )
+    game = GameEngine(game_config)
     game.play()
