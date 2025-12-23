@@ -85,57 +85,55 @@ class GameEngine:
         self.game_config.logger.info(f"{num_players} players")
 
         # Store original set of player IDs in history
-        player_ids = [player.config.player_id for player in self.players]
-        self.history.player_ids = player_ids
+        active_player_ids = [player.config.player_id for player in self.players]
+        self.history.player_ids = active_player_ids
 
-        #########################################################
-        # Start placeholder for game logic
-        #########################################################
-        # Run a generic round with just pitches
-        round_index = 1
+        # Start gameplay
+        round_index = 0
+        # TODO: narrate introduction
 
-        round_context = self._create_round_context(
-            round_index=round_index,
-            final_round=False,
-            players=self.players,
-            active_player_ids=player_ids,
-        )
-        round = Round(context=round_context, phases=[phase_pitches, phase_votes])
-        round.play()
+        # Rounds 1 to N - 2: standard elimination rounds
+        # Round N - 1: final round
+        while len(active_player_ids) > 1:
+            if len(active_player_ids) == 2:
+                final_round = True
+                outcome = "Winning"
+            else:
+                final_round = False
+                outcome = "Eliminated"
 
-        self.game_config.logger.info(
-            f"Vote tally: {round_context.votes['vote_tally']} (from engine.py)"
-        )
+            round_index += 1
+            self.game_config.logger.info(f"Round {round_index}")
 
-        self.game_config.logger.info(
-            f"Eliminated player: {round_context.votes['selected_player']} (from engine.py)"
-        )
+            round_context = self._create_round_context(
+                round_index=round_index,
+                final_round=final_round,
+                players=self.players,
+                active_player_ids=active_player_ids,
+            )
+            round = Round(context=round_context, phases=[phase_pitches, phase_votes])
+            round.play()
+
+            self.game_config.logger.info(
+                f"Vote tally: {round_context.votes['vote_tally']} (from engine.py)"
+            )
+
+            self.game_config.logger.info(
+                f"{outcome} player: {round_context.votes['selected_player']} (from engine.py)"
+            )
+
+            active_player_ids = [
+                pid
+                for pid in active_player_ids
+                if pid != round_context.votes["selected_player"]
+            ]
+
+            self.game_config.logger.info(
+                f"Next round players: {[active_player_ids]} (from engine.py)"
+            )
 
         # TODO: narrate elimination
-
-        next_round_player_ids = [
-            player.config.player_id
-            for player in self.players
-            if player.config.player_id != round_context.votes["selected_player"]
-        ]
-
-        self.game_config.logger.info(
-            f"Next round players: {[next_round_player_ids]} (from engine.py)"
-        )
-
-        round_index += 1
-        round_context = self._create_round_context(
-            round_index=round_index,
-            final_round=True,
-            players=self.players,
-            active_player_ids=next_round_player_ids,
-        )
-        round = Round(context=round_context, phases=[phase_pitches, phase_votes])
-        round.play()
-
-        #########################################################
-        # End placeholder for game logic
-        #########################################################
+        # TODO: indicate last round in history
 
         # Log game history
         output_path = os.path.join(

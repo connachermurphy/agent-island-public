@@ -10,7 +10,7 @@ dotenv.load_dotenv()
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-MAX_OUTPUT_TOKENS = 1024
+# MAX_OUTPUT_TOKENS = 1024
 LOGS_DIR = "logs"
 
 if __name__ == "__main__":
