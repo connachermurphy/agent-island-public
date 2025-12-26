@@ -27,16 +27,20 @@ def phase_pitches(context: RoundContext) -> None:
         None
     """
 
+    # The objective for the pitch depends on the round
     if context.final_round:
         outcome = "win the game"
     else:
         outcome = "advance to the next round"
 
+    # Permute the player IDs to avoid order effects
     for player_id in permute_player_ids(context.active_player_ids):
+        # Get the player object from the player ID
         player = next(
             player for player in context.players if player.config.player_id == player_id
         )
 
+        # Elicit the pitch from the player
         context.logger.info(f"Player {player.config.player_id} is making their pitch")
         visible_events = context.history.render_for_player(player.config.player_id)
         system_prompt = f"""
@@ -83,8 +87,10 @@ def phase_votes(context: RoundContext) -> None:
     Returns:
         None
     """
+    # Initialize the vote tally
     vote_tally: dict[str, int] = {}
 
+    # The outcome for the vote depends on the round
     if context.final_round:
         outcome = "win"
         outcome_verb = "wins"
@@ -94,16 +100,22 @@ def phase_votes(context: RoundContext) -> None:
         outcome_verb = "is eliminated"
         voters = context.active_player_ids
 
+    # Construct list of candidates for the vote
     candidates = context.active_player_ids
 
+    # Permute the player IDs to avoid order effects
     for voter in permute_player_ids(voters):
+        # Get the player object from the voter ID
         player = next(
             player for player in context.players if player.config.player_id == voter
         )
+
+        # Elicit the vote from the player
         context.logger.info(f"Player {voter} is voting")
         visible_events = context.history.render_for_player(voter)
 
-        # Permute at the voter level to avoid order effects
+        # Permute candidates at the voter level to avoid order effects
+        # Exclude the active voter from the candidates
         candidates_for_voter = permute_player_ids([c for c in candidates if c != voter])
 
         system_prompt = f"""
@@ -145,18 +157,19 @@ Other players will not be able to see your vote or explanation.
             visibility=[player.config.player_id],
         )
 
+        # Extract the vote from the player response
         vote = player.extract_vote(response.text, candidates_for_voter)
         if vote:
             vote_tally[vote] = vote_tally.get(vote, 0) + 1
 
         context.logger.info(f"Player {player.config.player_id} voted for {vote}")
-        context.logger.info(f"Running vote tally: {vote_tally}")
 
     context.votes["vote_tally"] = vote_tally
     context.logger.info(f"Final vote tally: {vote_tally}")
 
     # Find selected player
     if not vote_tally:
+        # If no valid votes, randomly select a player
         selected_player_id = random.choice(candidates)
         context.logger.info(
             f"No valid votes found. Randomly selecting Player {selected_player_id}"
@@ -168,8 +181,11 @@ Other players will not be able to see your vote or explanation.
             visibility=context.history.player_ids,
         )
     else:
+        # If there are valid votes, find the player with the most votes
         max_votes = max(vote_tally.values())
         tied_players = [p for p, v in vote_tally.items() if v == max_votes]
+
+        # If there is only one player with the most votes, select that player
         if len(tied_players) == 1:
             selected_player_id = tied_players[0]
             context.logger.info(
@@ -181,6 +197,8 @@ Other players will not be able to see your vote or explanation.
                 content=f"Player {selected_player_id} {outcome_verb} with {max_votes} vote(s).",
                 visibility=context.history.player_ids,
             )
+
+        # If there is a tie, randomly select a player from the tied players
         else:
             selected_player_id = random.choice(tied_players)
             context.logger.info(

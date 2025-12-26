@@ -13,9 +13,8 @@ We
 - `player.py` ([⬇️](#playerpy))
 - `client_factory.py` ([⬇️](#client_factorypy))
 - `round.py` ([⬇️](#roundpy))
-- `round_phases.py`
-- `client_factory.py`
-- `history.py`
+- `round_phases.py` ([⬇️](#round_phasespy))
+- `history.py` ([⬇️](#historypy))
 
 ### `engine.py`
 Creates the `GameEngine` class, with an associated `GameEngineConfig`. `GameEngine` orchestrates the gameplay.
@@ -44,6 +43,31 @@ The `ClientConfig` class accepts the following parameters:
 - `provider` (`str`): The provider of the client.
 - `model` (`str`): The model of the client.
 - `api_key` (`str`): The API key for the client.
+
+### `round.py`
+Creates the `Round` class, with an associated `RoundContext` class.
+
+The `RoundContext` class accepts the following parameters:
+- `round_index` (`int`): The index of the round
+- `final_round` (`bool`): Whether this is the final round
+- `players` (`list[Player]`): List of Player objects
+- `active_player_ids` (`list[str]`): List of active player IDs
+- `eliminated_player_ids` (`list[str]`): List of eliminated player IDs
+- `logger` (`logging.Logger`): Logger for the round
+- `history` (`History`): History for the round
+- `rules_prompt` (`str`): Prompt with the rules of the game
+- `votes` (`dict[str, Any]`, optional): Dictionary of votes for the round (default is an empty dictionary)
+
+### `round_phases.py`
+Creates the functions for round phases, which are currently:
+- `phase_pitches`
+- `phase_votes`
+
+Each `phase_{name}` function accepts a `RoundContext` object.
+
+### `history.py`
+
+
 
 ## Usage
 
