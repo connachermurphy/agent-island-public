@@ -44,6 +44,7 @@ Other players will be able to see your pitch.
             role=f"player {player.config.player_id}",
             prompt=f"{system_prompt}\n\n{visible_events}",
             content=response.text,
+            reasoning=response.reasoning,
             response=response,
             visibility=context.history.player_ids,
         )
@@ -106,6 +107,7 @@ Other players will not be able to see your vote or reasoning.
             role=f"player {player.config.player_id}",
             prompt=f"{system_prompt}\n\n{visible_events}",
             content=response.text,
+            reasoning=response.reasoning,
             response=response,
             visibility=[player.config.player_id],
         )

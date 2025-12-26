@@ -43,7 +43,7 @@ if __name__ == "__main__":
             "client_kwargs": {
                 "max_tokens": 2048,
                 "reasoning": {
-                    "effort": "low",
+                    "effort": "medium",
                     "summary": "auto",
                 },
             },
@@ -57,7 +57,7 @@ if __name__ == "__main__":
             "client_kwargs": {
                 "max_tokens": 2048,
                 "reasoning": {
-                    "effort": "low",
+                    "effort": "medium",
                     "summary": "auto",
                 },
             },
