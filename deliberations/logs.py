@@ -65,7 +65,12 @@ def parse_args() -> argparse.Namespace:
         help="Include prompts in the output",
     )
 
-    # TODO: add reasoning rendering
+    # Include reasoning
+    parser.add_argument(
+        "--include-reasoning",
+        action="store_true",
+        help="Include reasoning in the output",
+    )
 
     # Parse
     args = parser.parse_args()
@@ -101,25 +106,30 @@ def get_terminal_width() -> int:
     return size.columns
 
 
-def parse_event(event: dict) -> tuple[str, str, str, str, list[str]]:
+def parse_event(event: dict) -> tuple[str, str, str, str, str, list[str]]:
     """
     Parse an event into its components.
     """
-    heading = event.get("heading", "Event heading not found")
-    content = event.get("content", "Response content not found")
-    prompt = event.get("prompt", "Prompt not found")
-    role = event.get("role", "Role not found")
-    visibility = event.get("visibility", "Visibility not found")
+    heading = event.get("heading") or "Event heading not found"
+    role = event.get("role") or "Role not found"
+    prompt = event.get("prompt") or "Prompt not found"
+    reasoning = event.get("reasoning") or "Reasoning not found"
+    content = event.get("content") or "Response content not found"
+    visibility = event.get("visibility") or "Visibility not found"
 
-    return heading, content, prompt, role, visibility
+    print(f"Reasoning: {reasoning}")
+
+    return heading, role, prompt, reasoning, content, visibility
 
 
 # TODO: add a higher level function to get pieces of an event (e.g., prompt, heading, content)
-def render_terminal_event(event: dict, include_prompt: bool = False) -> str:
+def render_terminal_event(
+    event: dict, include_prompt: bool = False, include_reasoning: bool = False
+) -> str:
     """
     Render a single event for terminal output.
     """
-    _, content, prompt, role, visibility = parse_event(event)
+    _, role, prompt, reasoning, content, visibility = parse_event(event)
 
     output = ""
 
@@ -127,6 +137,11 @@ def render_terminal_event(event: dict, include_prompt: bool = False) -> str:
         output += f"<prompt: role={role}>\n"
         output += prompt + "\n"
         output += "</prompt>\n"
+
+    if include_reasoning:
+        output += f"<reasoning: role={role}>\n"
+        output += reasoning + "\n"
+        output += "</reasoning>\n"
 
     output += f"<response: role={role}, visibility={visibility}>\n"
     output += content + "\n"
@@ -156,23 +171,27 @@ def add_escape_characters(text: str) -> str:
     """
     Add escape characters to < and > in a text string.
     """
-    return text.replace("<", "\<").replace(">", "\>")
+    return text.replace("<", "\\<").replace(">", "\\>")
 
 
-def render_typst_event(event: dict, include_prompt: bool = False) -> str:
+def render_typst_event(
+    event: dict, include_prompt: bool = False, include_reasoning: bool = False
+) -> str:
     """
     Render a single event as a Typst showybox.
     """
-    heading, content, prompt, role, visibility = parse_event(event)
+    heading, role, prompt, reasoning, content, visibility = parse_event(event)
 
     if role == "narrator":
         frame = NARRATOR_FRAME
         include_prompt = False
+        include_reasoning = False
     else:
         frame = PLAYER_FRAME
 
     content = add_escape_characters(content)
     prompt = add_escape_characters(prompt)
+    reasoning = add_escape_characters(reasoning)
 
     # Initialize event string
     event_string = ""
@@ -180,6 +199,12 @@ def render_typst_event(event: dict, include_prompt: bool = False) -> str:
     # Add prompt
     if include_prompt:
         event_string += showybox("_Prompt:_ " + heading, prompt, frame=PROMPT_FRAME)
+        event_string += "\n"
+
+    if include_reasoning:
+        event_string += showybox(
+            "_Reasoning:_ " + heading, reasoning, frame=REASONING_FRAME
+        )
         event_string += "\n"
 
     event_string += showybox(
@@ -215,6 +240,7 @@ def build_outputs(
     game_history: dict,
     linebreak: str,
     include_prompt: bool = False,
+    include_reasoning: bool = False,
 ) -> tuple[str, str]:
     # One pass over events, two renderers: terminal + Typst.
     terminal_lines: list[str] = []
@@ -226,8 +252,12 @@ def build_outputs(
         terminal_lines.append(f"Active Players IDs: {round_log['active_player_ids']}")
         typst_content += f"= Round {round_index}\n\n"
         for event in round_log["events"]:
-            terminal_lines.append(render_terminal_event(event, include_prompt))
-            typst_content += render_typst_event(event, include_prompt)
+            terminal_lines.append(
+                render_terminal_event(event, include_prompt, include_reasoning)
+            )
+            typst_content += render_typst_event(
+                event, include_prompt, include_reasoning
+            )
 
     return ("\n".join(terminal_lines), typst_content)
 
@@ -262,11 +292,8 @@ if __name__ == "__main__":
     with open(f"logs/{args.filename}.json", "r") as f:
         game_history = json.load(f)
 
-    # TODO: include prompts
-    # TODO: include thinking
-
     terminal_content, typst_content = build_outputs(
-        game_history, linebreak, args.include_prompts
+        game_history, linebreak, args.include_prompts, args.include_reasoning
     )
 
     if args.terminal:
@@ -278,9 +305,10 @@ if __name__ == "__main__":
             f.write(typst_content)
         print(f"\nTypst output written to {typst_out}")
 
-# uv run logs.py --filename gameplay_20251225_211407 --terminal
-# uv run logs.py --filename gameplay_20251225_211407 --terminal --typst
-# uv run logs.py --filename gameplay_20251225_211407 --terminal --typst --include-prompts
+# uv run logs.py --filename gameplay_20251226_090757 --terminal
+# uv run logs.py --filename gameplay_20251226_090757 --terminal --typst
+# uv run logs.py --filename gameplay_20251226_090757 --terminal --typst --include-prompts
+# uv run logs.py --filename gameplay_20251226_090757 --terminal --typst --include-prompts --include-reasoning
 # Process event: include prompt selectively --> add as command line argument
 # Similar logic for including thinking
 # Add colors
