@@ -73,7 +73,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "dotenv", specifier = ">=0.9.9" },
-    { name = "llm-wrapper", git = "https://github.com/connachermurphy/llm-wrapper.git?rev=ff360c0" },
+    { name = "llm-wrapper", git = "https://github.com/connachermurphy/llm-wrapper.git?rev=960d8bf" },
 ]
 
 [[package]]
@@ -222,7 +222,7 @@ wheels = [
 [[package]]
 name = "llm-wrapper"
 version = "0.1.0"
-source = { git = "https://github.com/connachermurphy/llm-wrapper.git?rev=ff360c0#ff360c08a0b8a0c1ca92dfb0f2f6629e135431ed" }
+source = { git = "https://github.com/connachermurphy/llm-wrapper.git?rev=960d8bf#960d8bf1f14737d343839d98df4a80494248bea6" }
 dependencies = [
     { name = "anthropic" },
     { name = "dotenv" },
