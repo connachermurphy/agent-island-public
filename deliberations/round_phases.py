@@ -3,13 +3,36 @@ import random
 from round import RoundContext
 
 
+def permute_player_ids(player_ids: list[str]) -> list[str]:
+    """
+    Permute the player IDs in a random order.
+
+    Args:
+        players_ids: The list of player IDs to permute
+
+    Returns:
+        list[str]: The permuted player IDs
+    """
+    return random.sample(player_ids, k=len(player_ids))
+
+
 def phase_pitches(context: RoundContext) -> None:
+    """
+    Conduct a round phase of pitches
+
+    Args:
+        context: The round context
+
+    Returns:
+        None
+    """
+
     if context.final_round:
         outcome = "win the game"
     else:
         outcome = "advance to the next round"
 
-    for player_id in context.active_player_ids:
+    for player_id in permute_player_ids(context.active_player_ids):
         player = next(
             player for player in context.players if player.config.player_id == player_id
         )
@@ -51,6 +74,15 @@ Other players will be able to see your pitch.
 
 
 def phase_votes(context: RoundContext) -> None:
+    """
+    Conduct a round phase of votes
+
+    Args:
+        context: The round context
+
+    Returns:
+        None
+    """
     vote_tally: dict[str, int] = {}
 
     if context.final_round:
@@ -64,14 +96,15 @@ def phase_votes(context: RoundContext) -> None:
 
     candidates = context.active_player_ids
 
-    for voter in voters:
+    for voter in permute_player_ids(voters):
         player = next(
             player for player in context.players if player.config.player_id == voter
         )
         context.logger.info(f"Player {voter} is voting")
         visible_events = context.history.render_for_player(voter)
 
-        candidates_for_voter = [c for c in candidates if c != voter]
+        # Permute at the voter level to avoid order effects
+        candidates_for_voter = permute_player_ids([c for c in candidates if c != voter])
 
         system_prompt = f"""
 {context.rules_prompt}
