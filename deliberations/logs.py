@@ -110,7 +110,6 @@ def parse_event(event: dict) -> tuple[str, str, str, str, str, list[str]]:
     return heading, role, prompt, reasoning, content, visibility
 
 
-# TODO: add a higher level function to get pieces of an event (e.g., prompt, heading, content)
 def render_terminal_event(
     event: dict, include_prompt: bool = False, include_reasoning: bool = False
 ) -> str:
@@ -277,7 +276,6 @@ if __name__ == "__main__":
         logger.info(f"\n{linebreak}\n")
 
     logger.info("Filename: %s", args.filename)
-    # TODO: other metadata?
 
     # Load game history
     with open(f"logs/{args.filename}.json", "r") as f:

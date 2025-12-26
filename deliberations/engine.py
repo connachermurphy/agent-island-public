@@ -12,7 +12,6 @@ from round import Round, RoundContext
 from round_phases import phase_pitches, phase_votes
 
 
-# TODO: use the GameEngineConfig to structure the .play() method
 @dataclass
 class GameEngineConfig:
     logger: logging.Logger
@@ -90,7 +89,6 @@ class GameEngine:
 
         # Start gameplay
         round_index = 0
-        # TODO: narrate introduction
 
         # Rounds 1 to N - 2: standard elimination rounds
         # Round N - 1: final round
@@ -131,9 +129,6 @@ class GameEngine:
             self.game_config.logger.info(
                 f"Next round players: {[active_player_ids]} (from engine.py)"
             )
-
-        # TODO: narrate elimination
-        # TODO: indicate last round in history
 
         # Log game history
         output_path = os.path.join(
