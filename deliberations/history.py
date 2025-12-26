@@ -103,7 +103,7 @@ class History:
             for event in round_log.events:
                 if player_id in event.visibility:
                     parts.append(f"{event.heading}:")
-                    parts.append(f"{event.content}")
+                    parts.append(f"{event.content}\n")
         parts.append("</game_history>")
         return "\n".join(parts)
 
