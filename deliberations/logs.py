@@ -1,33 +1,22 @@
 import argparse
 import json
+import logging
 import os
 import shutil
 
-# TODO: switch to logger (can I suppress prefix?)
-# TODO: build with function
-PLAYER_FRAME = """
-border-color: blue.lighten(60%),
-title-color: blue.lighten(20%),
-body-color: blue.lighten(80%)
+
+def showybox_frame(color: str, lightness: tuple[int, int, int] = (60, 20, 80)) -> str:
+    return f"""
+border-color: {color}.lighten({lightness[0]}),
+title-color: {color}.lighten({lightness[1]}),
+body-color: {color}.lighten({lightness[2]})
 """
 
-PROMPT_FRAME = """
-border-color: olive.lighten(60%),
-title-color: olive.lighten(20%),
-body-color: olive.lighten(80%)
-"""
 
-REASONING_FRAME = """
-border-color: purple.lighten(60%),
-title-color: purple.lighten(20%),
-body-color: purple.lighten(80%)
-"""
-
-NARRATOR_FRAME = """
-border-color: teal.lighten(60%),
-title-color: teal.lighten(20%),
-body-color: teal.lighten(80%)
-"""
+PLAYER_FRAME = showybox_frame("blue")
+PROMPT_FRAME = showybox_frame("olive")
+REASONING_FRAME = showybox_frame("purple")
+NARRATOR_FRAME = showybox_frame("teal")
 
 
 def parse_args() -> argparse.Namespace:
@@ -262,7 +251,10 @@ def build_outputs(
 
 
 if __name__ == "__main__":
-    # Entry point: load history, render terminal output, and optionally write Typst.
+    # Prepare logger
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    logger = logging.getLogger(__name__)
+
     args = parse_args()
 
     terminal_width = get_terminal_width()
@@ -275,16 +267,16 @@ if __name__ == "__main__":
 
         logo_width = get_max_line_width(logo)
 
-        print(linebreak)
+        logger.info(linebreak)
 
         if logo_width > terminal_width:
-            print("Agent Island")
+            logger.info("Agent Island")
         else:
-            print(logo)
+            logger.info(logo)
 
-        print(f"\n{linebreak}\n")
+        logger.info(f"\n{linebreak}\n")
 
-    print("Filename:", args.filename, "\n")
+    logger.info("Filename: %s", args.filename)
     # TODO: other metadata?
 
     # Load game history
@@ -296,13 +288,13 @@ if __name__ == "__main__":
     )
 
     if args.terminal:
-        print(terminal_content)
+        logger.info(terminal_content)
 
     if args.typst:
         typst_out = os.path.join("logs", f"{args.filename}.typ")
         with open(typst_out, "w") as f:
             f.write(typst_content)
-        print(f"\nTypst output written to {typst_out}")
+        logger.info(f"\nTypst output written to {typst_out}")
 
 # uv run logs.py --filename gameplay_20251226_090757 --terminal
 # uv run logs.py --filename gameplay_20251226_090757 --terminal --typst
