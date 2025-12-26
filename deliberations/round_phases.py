@@ -1,11 +1,6 @@
 import random
-from typing import List
 
 from round import RoundContext
-
-
-def get_all_player_ids(context: RoundContext) -> List[str]:
-    return context.active_player_ids + context.eliminated_player_ids
 
 
 def phase_pitches(context: RoundContext) -> None:
@@ -59,9 +54,11 @@ def phase_votes(context: RoundContext) -> None:
 
     if context.final_round:
         outcome = "win"
+        outcome_verb = "wins"
         voters = context.eliminated_player_ids
     else:
         outcome = "eliminate"
+        outcome_verb = "is eliminated"
         voters = context.active_player_ids
 
     candidates = context.active_player_ids
@@ -129,18 +126,36 @@ Other players will not be able to see your vote or reasoning.
         context.logger.info(
             f"No valid votes found. Randomly selecting Player {selected_player_id}"
         )
+        context.history.narrate(
+            round_index=context.round_index,
+            heading=f"Round {context.round_index} Vote Results",
+            content=f"No valid votes found, so we are randomly selecting a player. Player {selected_player_id} {outcome_verb}.",
+            visibility=context.history.player_ids,
+        )
     else:
         max_votes = max(vote_tally.values())
         tied_players = [p for p, v in vote_tally.items() if v == max_votes]
         if len(tied_players) == 1:
             selected_player_id = tied_players[0]
             context.logger.info(
-                f"Player {selected_player_id} is selected with {max_votes} vote(s)"
+                f"Player {selected_player_id} {outcome_verb} with {max_votes} vote(s)"
+            )
+            context.history.narrate(
+                round_index=context.round_index,
+                heading=f"Round {context.round_index} Vote Results",
+                content=f"Player {selected_player_id} {outcome_verb} with {max_votes} vote(s).",
+                visibility=context.history.player_ids,
             )
         else:
             selected_player_id = random.choice(tied_players)
             context.logger.info(
-                f"Tie between {tied_players} with {max_votes}. Randomly selecting Player {selected_player_id}"
+                f"Tie between {tied_players} with {max_votes} vote(s). Randomly selecting Player {selected_player_id} {outcome_verb}."
+            )
+            context.history.narrate(
+                round_index=context.round_index,
+                heading=f"Round {context.round_index} Vote Results",
+                content=f"There is a tie between {tied_players} with {max_votes} vote(s), so we are randomly selecting one player. Player {selected_player_id} {outcome_verb}.",
+                visibility=context.history.player_ids,
             )
 
     context.votes["selected_player"] = selected_player_id
