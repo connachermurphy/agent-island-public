@@ -293,11 +293,3 @@ if __name__ == "__main__":
         with open(typst_out, "w") as f:
             f.write(typst_content)
         logger.info(f"\nTypst output written to {typst_out}")
-
-# uv run logs.py --filename gameplay_20251226_090757 --terminal
-# uv run logs.py --filename gameplay_20251226_090757 --terminal --typst
-# uv run logs.py --filename gameplay_20251226_090757 --terminal --typst --include-prompts
-# uv run logs.py --filename gameplay_20251226_090757 --terminal --typst --include-prompts --include-reasoning
-# Process event: include prompt selectively --> add as command line argument
-# Similar logic for including thinking
-# Add colors

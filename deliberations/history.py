@@ -4,6 +4,19 @@ from typing import Any, Dict, List
 
 @dataclass
 class Event:
+    """
+    An event in the game history
+
+    Args:
+        heading: The heading of the event
+        role: The role of the event
+        prompt: The prompt provided to the player
+        content: The content of the event (player response or narrator message)
+        visibility: The visibility of the event content
+        reasoning: The reasoning provided by the player
+        response: The response provided by the player
+    """
+
     heading: str
     role: str
     prompt: str
@@ -26,6 +39,17 @@ class Event:
 
 @dataclass
 class RoundLog:
+    """
+    A round log in the game history
+
+    Args:
+        round_index: The index of the round
+        final_round: Whether this is the final round
+        active_player_ids: The IDs of the active players
+        eliminated_player_ids: The IDs of the eliminated players
+        events: The events in the round
+    """
+
     round_index: int
     final_round: bool
     active_player_ids: List[str]
@@ -53,6 +77,12 @@ class RoundLog:
 
 class History:
     def __init__(self) -> None:
+        """
+        Initialize the history
+
+        Args:
+            None
+        """
         self.rounds: Dict[int, RoundLog] = {}
 
     def start_round(
@@ -70,6 +100,9 @@ class History:
             final_round: Whether this is the final round
             active_player_ids: The IDs of the active players
             eliminated_player_ids: The IDs of the eliminated players
+
+        Returns:
+            None
         """
 
         self.rounds[round_index] = RoundLog(
