@@ -19,10 +19,16 @@ We
 ### `engine.py`
 Creates the `GameEngine` class, with an associated `GameEngineConfig`. `GameEngine` orchestrates the gameplay.
 
+The `GameEngineConfig` class accepts the following parameters:
+- `logger` (`logging.Logger`): Logger for the GameEngine
+- `player_configs` (`list[PlayerConfig]`): List of PlayerConfig objects
+- `logs_dir` (`str`): Directory to save logs
+- `rules_prompt` (`str`): Prompt with the rules of the game
+
 ### `player.py`
 Creates the `Player` class, with an associated `PlayerConfig` class.
 
-The `Player` class requires the following parameters:
+The `PlayerConfig` class accepts the following parameters:
 - `player_id` (`str`): The ID of the player
 - `character_prompt` (`str`): The prompt for the player's character
 - `provider` (`str`): The provider of the player's client
