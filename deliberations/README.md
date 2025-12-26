@@ -11,6 +11,7 @@ We
 ## Engine structure
 - `engine.py` ([⬇️](#enginepy))
 - `player.py` ([⬇️](#playerpy))
+- `client_factory.py` ([⬇️](#client_factorypy))
 - `round.py` ([⬇️](#roundpy))
 - `round_phases.py`
 - `client_factory.py`
@@ -35,6 +36,14 @@ The `PlayerConfig` class accepts the following parameters:
 - `model` (`str`): The model of the player's client
 - `api_key` (`str`): The API key for the player's client
 - `client_kwargs` (`dict`): Additional keyword arguments for the client
+
+### `client_factory.py`
+Creates the `ClientFactory` class, with an associated `ClientConfig` class. The `ClientFactory` class maintains LLM clients and avoids duplication of the clients.
+
+The `ClientConfig` class accepts the following parameters:
+- `provider` (`str`): The provider of the client.
+- `model` (`str`): The model of the client.
+- `api_key` (`str`): The API key for the client.
 
 ## Usage
 
