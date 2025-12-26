@@ -10,9 +10,9 @@ We
 
 ## Engine structure
 - `engine.py` ([⬇️](#enginepy))
-- `round.py`
+- `player.py` ([⬇️](#playerpy))
+- `round.py` ([⬇️](#roundpy))
 - `round_phases.py`
-- `player.py`
 - `client_factory.py`
 - `history.py`
 
@@ -20,7 +20,15 @@ We
 Creates the `GameEngine` class, with an associated `GameEngineConfig`. `GameEngine` orchestrates the gameplay.
 
 ### `player.py`
+Creates the `Player` class, with an associated `PlayerConfig` class.
 
+The `Player` class requires the following parameters:
+- `player_id` (`str`): The ID of the player
+- `character_prompt` (`str`): The prompt for the player's character
+- `provider` (`str`): The provider of the player's client
+- `model` (`str`): The model of the player's client
+- `api_key` (`str`): The API key for the player's client
+- `client_kwargs` (`dict`): Additional keyword arguments for the client
 
 ## Usage
 

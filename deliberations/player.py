@@ -7,6 +7,18 @@ from llm_wrapper import Client
 
 @dataclass
 class PlayerConfig:
+    """
+    Configuration for a player
+
+    Args:
+        player_id: The ID of the player
+        character_prompt: The prompt for the player's character
+        provider: The provider of the player's client
+        model: The model of the player's client
+        api_key: The API key for the player's client
+        client_kwargs: The kwargs for the player's client
+    """
+
     player_id: str
     character_prompt: str
     provider: str
@@ -17,6 +29,13 @@ class PlayerConfig:
 
 class Player:
     def __init__(self, config: PlayerConfig, client: Client):
+        """
+        Initialize the Player class
+
+        Args:
+            config: PlayerConfig object
+            client: Client object
+        """
         self.config = config
         self.client = client
 
@@ -24,7 +43,17 @@ class Player:
         self,
         system_prompt: str,
         messages: list[dict],
-    ) -> str:
+    ):
+        """
+        Get an LLM response from the player
+
+        Args:
+            system_prompt: The system prompt for the client
+            messages: The message history for the client
+
+        Returns:
+            The response from the client
+        """
         response = self.client.generate(
             system=system_prompt,
             messages=messages,
@@ -32,9 +61,7 @@ class Player:
         )
         return response
 
-    def extract_vote(
-        self, content: str, valid_player_ids: list[str]
-    ) -> Optional[str]:
+    def extract_vote(self, content: str, valid_player_ids: list[str]) -> Optional[str]:
         """
         Extract vote from player response using structured format
 
@@ -52,5 +79,4 @@ class Player:
             if vote in valid_player_ids and vote != self.config.player_id:
                 return vote
 
-        # TODO: add warnings
         return None
