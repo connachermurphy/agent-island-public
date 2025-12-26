@@ -43,9 +43,8 @@ if __name__ == "__main__":
             "client_kwargs": {
                 "max_tokens": 2048,
                 "reasoning": {
-                    "effort": "minimal",
-                    # TODO: add summary after verification
-                    # "summary": "auto",
+                    "effort": "low",
+                    "summary": "auto",
                 },
             },
         },
@@ -58,9 +57,8 @@ if __name__ == "__main__":
             "client_kwargs": {
                 "max_tokens": 2048,
                 "reasoning": {
-                    "effort": "minimal",
-                    # TODO: add summary after verification
-                    # "summary": "auto",
+                    "effort": "low",
+                    "summary": "auto",
                 },
             },
         },
