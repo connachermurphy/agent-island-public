@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 
+# TODO: switch to logger (can I suppress prefix?)
 # TODO: build with function
 PLAYER_FRAME = """
 border-color: blue.lighten(60%),
@@ -116,8 +117,6 @@ def parse_event(event: dict) -> tuple[str, str, str, str, str, list[str]]:
     reasoning = event.get("reasoning") or "Reasoning not found"
     content = event.get("content") or "Response content not found"
     visibility = event.get("visibility") or "Visibility not found"
-
-    print(f"Reasoning: {reasoning}")
 
     return heading, role, prompt, reasoning, content, visibility
 
