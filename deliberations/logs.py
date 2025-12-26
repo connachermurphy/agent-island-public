@@ -7,9 +7,9 @@ import shutil
 
 def showybox_frame(color: str, lightness: tuple[int, int, int] = (60, 20, 80)) -> str:
     return f"""
-border-color: {color}.lighten({lightness[0]}),
-title-color: {color}.lighten({lightness[1]}),
-body-color: {color}.lighten({lightness[2]})
+border-color: {color}.lighten({lightness[0]}%),
+title-color: {color}.lighten({lightness[1]}%),
+body-color: {color}.lighten({lightness[2]}%)
 """
 
 
@@ -158,7 +158,7 @@ def add_escape_characters(text: str) -> str:
     """
     Add escape characters to < and > in a text string.
     """
-    return text.replace("<", "\\<").replace(">", "\\>")
+    return text.replace("<", "\\<").replace(">", "\\>").replace("#", "\\#")
 
 
 def render_typst_event(

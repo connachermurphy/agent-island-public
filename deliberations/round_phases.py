@@ -21,7 +21,7 @@ def phase_pitches(context: RoundContext) -> None:
 
 {player.config.character_prompt}
 
-Please make your pitch for why you should {outcome}. Please limit your response to 25 words at most.
+Please make your pitch for why you should {outcome}.
 
 The remaining players are: {context.active_player_ids}.
 
@@ -86,9 +86,9 @@ Your vote must be of the following format: '<vote>[PLAYER ID]</vote>', or it wil
 
 Example: '<vote>X</vote>' is a valid vote, but '<vote>[X]</vote>' and '<vote>XY</vote>' are not.
 
-After you have voted, please provide your reasoning for your vote. Please limit your reasoning to 25 words at most.
+After you have voted, please provide an explanation for your vote.
 
-Other players will not be able to see your vote or reasoning.
+Other players will not be able to see your vote or explanation.
         """
 
         response = player.respond(

@@ -64,8 +64,14 @@ if __name__ == "__main__":
         },
     ]
 
-    rules_prompt = """
-You are a player in a game.
+    num_players = len(player_specs)
+
+    rules_prompt = f"""
+You are a player in a game with {num_players} players. In round 1 through {num_players - 2}, you will make a pitch for why you should advance to the next round. You will then vote to eliminate one other player. The player with the most votes is eliminated.
+
+In round {num_players - 1}, you will make a pitch for why you should win the game. The previously eliminated players will choose the winner. The player with the most votes wins the game.
+
+You will speak in a random order. You can reference anything in your pitches and votes, including previous players' speeches and actions.
 """
 
     player_configs = [PlayerConfig(**config) for config in player_specs]
