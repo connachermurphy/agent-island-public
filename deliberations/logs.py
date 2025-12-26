@@ -13,10 +13,10 @@ body-color: {color}.lighten({lightness[2]}%)
 """
 
 
-PLAYER_FRAME = showybox_frame("blue")
+PLAYER_FRAME = showybox_frame("navy")
 PROMPT_FRAME = showybox_frame("olive")
-REASONING_FRAME = showybox_frame("purple")
-NARRATOR_FRAME = showybox_frame("teal")
+REASONING_FRAME = showybox_frame("eastern")
+NARRATOR_FRAME = showybox_frame("maroon")
 
 
 def parse_args() -> argparse.Namespace:
