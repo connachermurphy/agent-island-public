@@ -10,4 +10,4 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-llm-wrapper = { git = "https://github.com/connachermurphy/llm-wrapper.git", rev = "960d8bf" }
+llm-wrapper = { git = "https://github.com/connachermurphy/llm-wrapper.git", rev = "c3e96b2" }
