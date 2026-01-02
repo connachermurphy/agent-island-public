@@ -9,6 +9,7 @@ dotenv.load_dotenv()
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 LOGS_DIR = "logs"
 
 if __name__ == "__main__":
@@ -49,14 +50,14 @@ if __name__ == "__main__":
         {
             "player_id": "C",
             "character_prompt": "You are player C.",
-            "provider": "openai",
-            "model": "gpt-5-nano-2025-08-07",
-            "api_key": OPENAI_API_KEY,
+            "provider": "google",
+            "model": "gemini-3-flash-preview",
+            "api_key": GOOGLE_API_KEY,
             "client_kwargs": {
                 "max_tokens": 2048,
                 "reasoning": {
-                    "effort": "low",
-                    "summary": "auto",
+                    "include_thoughts": True,
+                    "thinking_level": "low",
                 },
             },
         },
