@@ -43,7 +43,6 @@ if __name__ == "__main__":
                 "max_tokens": 2048,
                 "reasoning": {
                     "effort": "low",
-                    "summary": "auto",
                 },
             },
         },
