@@ -1,17 +1,58 @@
 import logging
+import os
+import pathlib
+import tomllib
+import dotenv
 
 from game_engine import GameEngine, GameEngineConfig, PlayerConfig
-from player_config import PLAYER_SPECS
 
 LOGS_DIR = "logs"
+
+dotenv.load_dotenv()
+
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+def _default_api_key_env(provider: str) -> str | None:
+    mapping = {
+        "openai": "OPENAI_API_KEY",
+        "anthropic": "ANTHROPIC_API_KEY",
+        "google": "GOOGLE_API_KEY",
+    }
+    return mapping.get(provider.lower())
+
+
+def load_player_specs_from_toml(config_path: str) -> list[dict]:
+    with open(config_path, "rb") as f:
+        data = tomllib.load(f)
+    players = data.get("players", [])
+    specs: list[dict] = []
+    for p in players:
+        provider = p["provider"]
+        api_key_env = p.get("api_key_env") or _default_api_key_env(provider)
+        api_key = os.getenv(api_key_env) if api_key_env else None
+        spec = {
+            "player_id": p["player_id"],
+            "character_prompt": p["character_prompt"],
+            "provider": provider,
+            "model": p["model"],
+            "api_key": api_key,
+            "client_kwargs": p.get("client_kwargs", {}),
+        }
+        specs.append(spec)
+    return specs
+
 
 if __name__ == "__main__":
     # Prepare logger
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    # Load player specifications from config
-    player_specs = PLAYER_SPECS
+    # Load player specifications from TOML config
+    here = pathlib.Path(__file__).parent
+    config_path = here / "player_config.toml"
+    player_specs = load_player_specs_from_toml(str(config_path))
     num_players = len(player_specs)
 
     rules_prompt = f"""
