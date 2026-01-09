@@ -119,21 +119,21 @@ def phase_votes(context: RoundContext) -> None:
         candidates_for_voter = permute_player_ids([c for c in candidates if c != voter])
 
         system_prompt = f"""
-{context.rules_prompt}
+            {context.rules_prompt}
 
-{player.config.character_prompt}
+            {player.config.character_prompt}
 
-Please vote for one player to {outcome}. You cannot vote for yourself.
+            Please vote for one player to {outcome}. You cannot vote for yourself.
 
-You must vote for one of the following players: {candidates_for_voter}.
+            You must vote for one of the following players: {candidates_for_voter}.
 
-Your vote must be of the following format: '<vote>[PLAYER ID]</vote>', or it will be ignored.
+            Your vote must be of the following format: '<vote>[PLAYER ID]</vote>', or it will be ignored.
 
-Example: '<vote>X</vote>' is a valid vote, but '<vote>[X]</vote>' and '<vote>XY</vote>' are not.
+            Example: '<vote>X</vote>' is a valid vote, but '<vote>[X]</vote>' and '<vote>XY</vote>' are not.
 
-After you have voted, please provide an explanation for your vote.
+            After you have voted, please provide an explanation for your vote.
 
-Other players will not be able to see your vote or explanation.
+            Other players will not be able to see your vote or explanation.
         """
 
         response = player.respond(
