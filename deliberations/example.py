@@ -2,8 +2,7 @@ import logging
 import os
 
 import dotenv
-from engine import GameEngine, GameEngineConfig
-from player import PlayerConfig
+from game_engine import GameEngine, GameEngineConfig, PlayerConfig
 
 dotenv.load_dotenv()
 

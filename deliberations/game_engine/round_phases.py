@@ -1,6 +1,6 @@
 import random
 
-from round import RoundContext
+from .round import RoundContext
 
 
 def permute_player_ids(player_ids: list[str]) -> list[str]:

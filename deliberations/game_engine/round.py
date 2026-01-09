@@ -2,8 +2,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, List
 
-from history import History
-from player import Player
+from .history import History
+from .player import Player
 
 
 @dataclass

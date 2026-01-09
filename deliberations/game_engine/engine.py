@@ -5,11 +5,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
-from client_factory import ClientFactory
-from history import History
-from player import Player, PlayerConfig
-from round import Round, RoundContext
-from round_phases import phase_pitches, phase_votes
+from .client_factory import ClientFactory
+from .history import History
+from .player import Player, PlayerConfig
+from .round import Round, RoundContext
+from .round_phases import phase_pitches, phase_votes
 
 
 @dataclass
