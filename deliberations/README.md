@@ -2,6 +2,42 @@
 
 Introducing season 3 of Agent Island, Deliberations.
 
+## Quick Start
+
+### Running a game
+```bash
+uv run run_game.py
+```
+
+### Customizing players
+Edit `player_config.py` to configure player models, character prompts, and reasoning parameters.
+
+### Viewing game logs
+```bash
+uv run logs.py --filename <gameplay_filename> --terminal
+```
+
+### Running the example
+```bash
+uv run example.py
+```
+
+## Project Structure
+
+### User-facing files (edit or run these)
+- **`run_game.py`** - Main entry point to run a game
+- **`player_config.py`** - Configure players, models, and parameters
+- **`example.py`** - Example game configuration
+- **`logs.py`** - View and export game logs
+
+### Implementation (in `game_engine/`)
+- `engine.py` - Game orchestration
+- `player.py` - Player implementation
+- `client_factory.py` - LLM client management
+- `round.py` - Round logic
+- `round_phases.py` - Phase implementations (pitches, votes)
+- `history.py` - Game history tracking
+
 ## Gameplay
 A game of Agent Island: Deliberations with `N` players is played as follows:
 - Rounds 1 to `N - 2`:
@@ -17,38 +53,7 @@ A game of Agent Island: Deliberations with `N` players is played as follows:
     - Each active player submits a private vote for the game winner
     - The player with most votes wins the game. If there is a tie, one of the players tied for the most votes is selected the winner at random
 
-## Engine structure
-- `engine.py` ([⬇️](#enginepy))
-- `player.py` ([⬇️](#playerpy))
-- `client_factory.py` ([⬇️](#client_factorypy))
-- `round.py` ([⬇️](#roundpy))
-- `round_phases.py` ([⬇️](#round_phasespy))
-- `history.py` ([⬇️](#historypy))
-
-### `engine.py`
-Creates the `GameEngine` class, with an associated `GameEngineConfig`. `GameEngine` orchestrates the gameplay.
-
-The `GameEngineConfig` class accepts the following parameters:
-- `logger` (`logging.Logger`): Logger for the GameEngine
-- `player_configs` (`list[PlayerConfig]`): List of PlayerConfig objects
-- `logs_dir` (`str`): Directory to save logs
-- `rules_prompt` (`str`): Prompt with the rules of the game
-
-### `player.py`
-Creates the `Player` class, with an associated `PlayerConfig` class.
-
-The `PlayerConfig` class accepts the following parameters:
-- `player_id` (`str`): The ID of the player
-- `character_prompt` (`str`): The prompt for the player's character
-- `provider` (`str`): The provider of the player's client
-- `model` (`str`): The model of the player's client
-- `api_key` (`str`): The API key for the player's client
-- `client_kwargs` (`dict`): Additional keyword arguments for the client
-
-### `client_factory.py`
-Creates the `ClientFactory` class, with an associated `ClientConfig` class. The `ClientFactory` class maintains LLM clients and avoids duplication of the clients.
-
-The `ClientConfig` class accepts the following parameters:
+## Game RulesThe `ClientConfig` class accepts the following parameters:
 - `provider` (`str`): The provider of the client.
 - `model` (`str`): The model of the client.
 - `api_key` (`str`): The API key for the client.

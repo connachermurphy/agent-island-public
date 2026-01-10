@@ -1,0 +1,45 @@
+# Player configuration (TOML)
+# Secrets stay in your environment (.env). For each player, set api_key_env
+# to the environment variable that holds their API key.
+
+[[players]]
+player_id = "A"
+provider = "google"
+model = "gemini-3-flash-preview"
+character_prompt = "You are player A."
+api_key_env = "GOOGLE_API_KEY"
+
+[players.client_kwargs]
+max_tokens = 2048
+
+[players.client_kwargs.reasoning]
+include_thoughts = true
+thinking_level = "low"
+
+[[players]]
+player_id = "B"
+provider = "google"
+model = "gemini-3-flash-preview"
+character_prompt = "You are player B."
+api_key_env = "GOOGLE_API_KEY"
+
+[players.client_kwargs]
+max_tokens = 2048
+
+[players.client_kwargs.reasoning]
+include_thoughts = true
+thinking_level = "low"
+
+[[players]]
+player_id = "C"
+provider = "google"
+model = "gemini-3-flash-preview"
+character_prompt = "You are player C."
+api_key_env = "GOOGLE_API_KEY"
+
+[players.client_kwargs]
+max_tokens = 2048
+
+[players.client_kwargs.reasoning]
+include_thoughts = true
+thinking_level = "low"

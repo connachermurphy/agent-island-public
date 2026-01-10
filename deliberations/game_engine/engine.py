@@ -5,11 +5,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
-from client_factory import ClientFactory
-from history import History
-from player import Player, PlayerConfig
-from round import Round, RoundContext
-from round_phases import phase_pitches, phase_votes
+from .client_factory import ClientFactory
+from .history import History
+from .player import Player, PlayerConfig
+from .round import Round, RoundContext
+from .round_phases import phase_pitches, phase_votes
 
 
 @dataclass
@@ -183,6 +183,8 @@ class GameEngine:
                 f"Next round players: {[active_player_ids]} (from engine.py)"
             )
 
+        os.makedirs(self.game_config.logs_dir, exist_ok=True)
+        
         output_path = os.path.join(
             self.game_config.logs_dir, f"gameplay_{timestamp}.json"
         )
