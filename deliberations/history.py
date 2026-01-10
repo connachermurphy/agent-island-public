@@ -84,6 +84,7 @@ class History:
             None
         """
         self.rounds: Dict[int, RoundLog] = {}
+        self.players: Dict[str, Any] = {}  # TODO: add players
 
     def start_round(
         self,
@@ -204,7 +205,7 @@ class History:
         parts.append("</game_history>")
         return "\n".join(parts)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Dict] 
         """
         Convert the history to a dictionary.
 
@@ -214,4 +215,13 @@ class History:
         Returns:
             A dictionary representing the game history
         """
-        return {str(k): v.to_dict() for k, v in self.rounds.items()}
+        players_dict = {str(k): v.to_dict() for k, v in self.players.items()}
+
+        rounds_dict = {str(k): v.to_dict() for k, v in self.rounds.items()}
+
+        history = {
+            "players": players_dict,
+            "rounds": rounds_dict
+        }
+
+        return history

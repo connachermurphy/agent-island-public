@@ -26,6 +26,15 @@ class PlayerConfig:
     api_key: str
     client_kwargs: dict
 
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "player_id": self.player_id,
+            "character_prompt": self.player_prompt,
+            "provider": self.provider,
+            "model": self.model,
+            "client_kwargs": repr(self.client_kwargs)
+        }
+
 
 class Player:
     def __init__(self, config: PlayerConfig, client: Client):
