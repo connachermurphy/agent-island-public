@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from llm_wrapper import Client
-
+# swap out for OpenRouter
 
 @dataclass
 class PlayerConfig:
