@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "dotenv>=0.9.9",
     "llm-wrapper",
+    "openrouter>=0.1.3",
 ]
 
 [tool.uv.sources]
