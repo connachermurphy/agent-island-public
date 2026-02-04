@@ -21,7 +21,6 @@ if __name__ == "__main__":
         {
             "player_id": "A",
             "character_prompt": "You are player A.",
-            "provider": "anthropic",
             "model": "claude-haiku-4-5-20251001",
             "api_key": ANTHROPIC_API_KEY,
             "client_kwargs": {
@@ -35,7 +34,6 @@ if __name__ == "__main__":
         {
             "player_id": "B",
             "character_prompt": "You are player B.",
-            "provider": "openai",
             "model": "gpt-5-nano-2025-08-07",
             "api_key": OPENAI_API_KEY,
             "client_kwargs": {
@@ -48,7 +46,6 @@ if __name__ == "__main__":
         {
             "player_id": "C",
             "character_prompt": "You are player C.",
-            "provider": "google",
             "model": "gemini-3-flash-preview",
             "api_key": GOOGLE_API_KEY,
             "client_kwargs": {

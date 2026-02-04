@@ -72,7 +72,7 @@ Other players will be able to see your pitch.
             prompt=f"{system_prompt}\n\n{visible_events}",
             content=response.text,
             reasoning=response.reasoning,
-            response=response,
+            metadata=response.metadata,
             visibility=context.history.player_ids,
         )
 
@@ -153,11 +153,11 @@ def phase_votes(context: RoundContext) -> None:
             prompt=f"{system_prompt}\n\n{visible_events}",
             content=response.text,
             reasoning=response.reasoning,
-            response=response,
+            metadata=response.metadata,
             visibility=[player.config.player_id],
         )
 
-        # Extract the vote from the player response
+        # Extract the vote from the player content
         vote = player.extract_vote(response.text, candidates_for_voter)
         if vote:
             vote_tally[vote] = vote_tally.get(vote, 0) + 1

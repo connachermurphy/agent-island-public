@@ -1,13 +1,19 @@
 from openrouter import OpenRouter
-# import os
+import os
+import dotenv
 
-with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
-    response = client.chat.send(
-        model="minimax/minimax-m2",
-        messages=[{"role": "user", "content": "Please introduce yourself."}],
-    )
+dotenv.load_dotenv()
 
-    print(response)
+api_key = os.getenv("OPENROUTER_API_KEY")
+
+client = OpenRouter(api_key=api_key)
+
+response = client.chat.send(
+    model="liquid/lfm-2.5-1.2b-instruct:free",
+    messages=[{"role": "user", "content": "Please introduce yourself."}],
+)
+
+print(response)
 
 
 # from anthropic import Anthropic

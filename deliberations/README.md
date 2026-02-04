@@ -85,6 +85,8 @@ History: one for each game
 └── RoundLog(s): one for each round
     └── Event(s): each event in the game (e.g., narrator message or a player pitch)
 
+Each event stores `heading`, `role`, `prompt`, `content`, `visibility`, and optional
+`reasoning` and `metadata` fields. The full model response is not persisted.
 The history is json-serializable and is thus stored as a json.
 
 ## Usage

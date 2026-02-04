@@ -11,10 +11,10 @@ class Event:
         heading: The heading of the event
         role: The role of the event
         prompt: The prompt provided to the player
-        content: The content of the event (player response or narrator message)
+        content: The content of the event (player content or narrator message)
         visibility: The visibility of the event content
         reasoning: The reasoning provided by the player
-        response: The response provided by the player
+        metadata: Parsed metadata about the response (if available)
     """
 
     heading: str
@@ -23,7 +23,7 @@ class Event:
     content: str
     visibility: List[str]
     reasoning: str | None = None
-    response: Any | None = None
+    metadata: Dict[str, Any] | None = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -33,7 +33,7 @@ class Event:
             "content": self.content,
             "visibility": self.visibility,
             "reasoning": self.reasoning,
-            "response": repr(self.response),
+            "metadata": self.metadata,
         }
 
 
@@ -122,20 +122,20 @@ class History:
         content: str,
         visibility: List[str],
         reasoning: str | None = None,
-        response: Any | None = None,
+        metadata: Dict[str, Any] | None = None,
     ) -> None:
         """
         Add an event to the game history.
 
         Args:
             round_index: The index of the round
-            heading: The heading of the event
-            role: The role of the event
-            prompt: The prompt provided to the player
-            content: The content of the event (player response or narrator message)
-            visibility: The visibility of the event content
-            reasoning: The reasoning provided by the player
-            response: The response provided by the player
+        heading: The heading of the event
+        role: The role of the event
+        prompt: The prompt provided to the player
+        content: The content of the event (player content or narrator message)
+        visibility: The visibility of the event content
+        reasoning: The reasoning provided by the player
+        metadata: Parsed metadata about the response (if available)
 
         Returns:
             None
@@ -148,7 +148,7 @@ class History:
                 content=content,
                 visibility=visibility,
                 reasoning=reasoning,
-                response=response,
+                metadata=metadata,
             )
         )
 
