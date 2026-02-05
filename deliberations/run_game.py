@@ -2,8 +2,8 @@ import logging
 import os
 import pathlib
 import tomllib
-import dotenv
 
+import dotenv
 from game_engine import GameEngine, GameEngineConfig, PlayerConfig
 
 LOGS_DIR = "logs"
@@ -11,6 +11,7 @@ LOGS_DIR = "logs"
 dotenv.load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
 
 def load_player_specs_from_toml(config_path: str) -> list[dict]:
     if not OPENROUTER_API_KEY:

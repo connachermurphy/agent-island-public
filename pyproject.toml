@@ -10,10 +10,11 @@ exclude = [
     ".venv",
     "__pycache__",
     "*.egg-info",
+    "back_catalog",
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["beginnings", "confessionals", "deliberations"]
+known-first-party = ["deliberations"]
 
 [tool.ruff.format]
 quote-style = "double"

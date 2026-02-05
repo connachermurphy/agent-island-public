@@ -176,7 +176,7 @@ class GameEngine:
             )
 
         os.makedirs(self.game_config.logs_dir, exist_ok=True)
-        
+
         output_path = os.path.join(
             self.game_config.logs_dir, f"gameplay_{timestamp}.json"
         )
