@@ -13,6 +13,9 @@ dotenv.load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 def load_player_specs_from_toml(config_path: str) -> list[dict]:
+    if not OPENROUTER_API_KEY:
+        raise RuntimeError("OPENROUTER_API_KEY is required but not set.")
+
     with open(config_path, "rb") as f:
         data = tomllib.load(f)
     players = data.get("players", [])

@@ -10,33 +10,27 @@ uv run run_game.py
 ```
 
 ### Customizing players
-Edit `player_config.py` to configure player models, character prompts, and reasoning parameters.
+Edit `player_config.toml` to configure player models, character prompts, and parameters.
 
 ### Viewing game logs
 ```bash
 uv run logs.py --filename <gameplay_filename> --terminal
 ```
 
-### Running the example
-```bash
-uv run example.py
-```
-
 ## Project Structure
 
 ### User-facing files (edit or run these)
 - **`run_game.py`** - Main entry point to run a game
-- **`player_config.py`** - Configure players, models, and parameters
-- **`example.py`** - Example game configuration
+- **`player_config.toml`** - Configure players, models, and parameters
 - **`logs.py`** - View and export game logs
 
 ### Implementation (in `game_engine/`)
 - `engine.py` - Game orchestration
 - `player.py` - Player implementation
-- `client_factory.py` - LLM client management
 - `round.py` - Round logic
 - `round_phases.py` - Phase implementations (pitches, votes)
 - `history.py` - Game history tracking
+- `llm_response.py` - LLM response parsing
 
 ## Gameplay
 A game of Agent Island: Deliberations with `N` players is played as follows:
@@ -53,10 +47,9 @@ A game of Agent Island: Deliberations with `N` players is played as follows:
     - Each active player submits a private vote for the game winner
     - The player with most votes wins the game. If there is a tie, one of the players tied for the most votes is selected the winner at random
 
-## Game RulesThe `ClientConfig` class accepts the following parameters:
-- `provider` (`str`): The provider of the client.
-- `model` (`str`): The model of the client.
-- `api_key` (`str`): The API key for the client.
+## Game Rules
+Deliberations uses OpenRouter. Set `OPENROUTER_API_KEY` in your environment.
+Model IDs must be OpenRouter model identifiers (namespaced).
 
 ### `round.py`
 Creates the `Round` class, with an associated `RoundContext` class.
@@ -99,7 +92,7 @@ uv sync
 
 To run a sample game, execute:
 ```bash
-uv run example.py
+uv run run_game.py
 ```
 
 ## Logs
