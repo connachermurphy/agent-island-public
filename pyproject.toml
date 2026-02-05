@@ -1,0 +1,20 @@
+[tool.ruff]
+# Standard linting rules
+lint.select = ["E", "F", "I", "W"]
+line-length = 88
+target-version = "py312"
+
+# Exclude common non-source directories
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "*.egg-info",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["beginnings", "confessionals", "deliberations"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
