@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
-from .client_factory import ClientFactory
 from .history import History
 from .player import Player, PlayerConfig
 from .round import Round, RoundContext
@@ -59,15 +58,8 @@ class GameEngine:
         players: List[Player] = []
 
         # Initialize the players from the player configurations
-        client_factory = ClientFactory()
-
         for player_config in self.game_config.player_configs:
-            client = client_factory.get(
-                provider=player_config.provider,
-                model=player_config.model,
-                api_key=player_config.api_key,
-            )
-            player = Player(player_config, client)
+            player = Player(player_config)
             players.append(player)
 
         return players

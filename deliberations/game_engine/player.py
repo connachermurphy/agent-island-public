@@ -1,8 +1,8 @@
 import re
 from dataclasses import dataclass
 from typing import Optional
-
-from llm_wrapper import Client
+from openrouter import OpenRouter
+from .llm_response import LLMResponse, parse_openrouter_response
 
 
 @dataclass
@@ -21,14 +21,13 @@ class PlayerConfig:
 
     player_id: str
     character_prompt: str
-    provider: str
     model: str
     api_key: str
     client_kwargs: dict
 
 
 class Player:
-    def __init__(self, config: PlayerConfig, client: Client):
+    def __init__(self, config: PlayerConfig):
         """
         Initialize the Player class
 
@@ -37,13 +36,15 @@ class Player:
             client: Client object
         """
         self.config = config
-        self.client = client
+        self.client = OpenRouter(
+            api_key=config.api_key
+        )
 
     def respond(
         self,
         system_prompt: str,
         messages: list[dict],
-    ):
+    ) -> LLMResponse:
         """
         Get an LLM response from the player
 
@@ -54,12 +55,13 @@ class Player:
         Returns:
             The response from the client
         """
-        response = self.client.generate(
-            system=system_prompt,
+        messages = [{"role": "system", "content": system_prompt}, *messages]
+        response = self.client.chat.send(
+            model=self.config.model,
             messages=messages,
             **self.config.client_kwargs,
         )
-        return response
+        return parse_openrouter_response(response)
 
     def extract_vote(self, content: str, valid_player_ids: list[str]) -> Optional[str]:
         """

@@ -1,45 +1,29 @@
 # Player configuration (TOML)
-# Secrets stay in your environment (.env). For each player, set api_key_env
-# to the environment variable that holds their API key.
+# Secrets stay in your environment (.env). Set OPENROUTER_API_KEY
+# to the environment variable that holds your API key.
 
 [[players]]
 player_id = "A"
-provider = "google"
-model = "gemini-3-flash-preview"
+model = "nvidia/nemotron-3-nano-30b-a3b:free"
 character_prompt = "You are player A."
-api_key_env = "GOOGLE_API_KEY"
 
 [players.client_kwargs]
-max_tokens = 2048
-
-[players.client_kwargs.reasoning]
-include_thoughts = true
-thinking_level = "low"
+max_tokens = 4096
 
 [[players]]
 player_id = "B"
-provider = "google"
-model = "gemini-3-flash-preview"
+model = "nvidia/nemotron-3-nano-30b-a3b:free"
 character_prompt = "You are player B."
-api_key_env = "GOOGLE_API_KEY"
 
 [players.client_kwargs]
-max_tokens = 2048
-
-[players.client_kwargs.reasoning]
-include_thoughts = true
-thinking_level = "low"
+max_tokens = 4096
 
 [[players]]
 player_id = "C"
-provider = "google"
-model = "gemini-3-flash-preview"
+model = "nvidia/nemotron-3-nano-30b-a3b:free"
 character_prompt = "You are player C."
-api_key_env = "GOOGLE_API_KEY"
 
 [players.client_kwargs]
-max_tokens = 2048
+max_tokens = 4096
 
-[players.client_kwargs.reasoning]
-include_thoughts = true
-thinking_level = "low"
+# Optionally add players.client_kwargs.reasoning
