@@ -160,11 +160,14 @@ class GameEngine:
             )
 
             self.game_config.logger.info(
-                f"{outcome} player: {round_context.votes['selected_player']} (from engine.py)"
+                f"{outcome} player: "
+                f"{round_context.votes['selected_player']} "
+                f"(from engine.py)"
             )
 
             # Remove eliminated player from active player IDs
-            # active_player_ids is used in subsequent rounds, so the update after the final vote is irrelevant
+            # active_player_ids is used in subsequent rounds,
+            # so the update after the final vote is irrelevant
             active_player_ids = [
                 pid
                 for pid in active_player_ids
@@ -176,7 +179,7 @@ class GameEngine:
             )
 
         os.makedirs(self.game_config.logs_dir, exist_ok=True)
-        
+
         output_path = os.path.join(
             self.game_config.logs_dir, f"gameplay_{timestamp}.json"
         )

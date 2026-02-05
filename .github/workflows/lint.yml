@@ -1,0 +1,25 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install Ruff
+        run: uv tool install ruff
+
+      - name: Run Ruff linter
+        run: ruff check .
+
+      - name: Check formatting
+        run: ruff format --check .

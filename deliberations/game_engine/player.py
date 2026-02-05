@@ -1,7 +1,9 @@
 import re
 from dataclasses import dataclass
 from typing import Optional
+
 from openrouter import OpenRouter
+
 from .llm_response import LLMResponse, parse_openrouter_response
 
 
@@ -36,9 +38,7 @@ class Player:
             client: Client object
         """
         self.config = config
-        self.client = OpenRouter(
-            api_key=config.api_key
-        )
+        self.client = OpenRouter(api_key=config.api_key)
 
     def respond(
         self,

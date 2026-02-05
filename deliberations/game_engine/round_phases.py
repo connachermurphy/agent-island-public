@@ -127,9 +127,11 @@ def phase_votes(context: RoundContext) -> None:
 
             You must vote for one of the following players: {candidates_for_voter}.
 
-            Your vote must be of the following format: '<vote>[PLAYER ID]</vote>', or it will be ignored.
+            Your vote must be of the following format:
+            '<vote>[PLAYER ID]</vote>', or it will be ignored.
 
-            Example: '<vote>X</vote>' is a valid vote, but '<vote>[X]</vote>' and '<vote>XY</vote>' are not.
+            Example: '<vote>X</vote>' is a valid vote, but
+            '<vote>[X]</vote>' and '<vote>XY</vote>' are not.
 
             After you have voted, please provide an explanation for your vote.
 
@@ -177,7 +179,11 @@ def phase_votes(context: RoundContext) -> None:
         context.history.narrate(
             round_index=context.round_index,
             heading=f"Round {context.round_index} Vote Results",
-            content=f"No valid votes found, so we are randomly selecting a player. Player {selected_player_id} {outcome_verb}.",
+            content=(
+                f"No valid votes found, so we are randomly "
+                f"selecting a player. Player "
+                f"{selected_player_id} {outcome_verb}."
+            ),
             visibility=context.history.player_ids,
         )
     else:
@@ -194,7 +200,11 @@ def phase_votes(context: RoundContext) -> None:
             context.history.narrate(
                 round_index=context.round_index,
                 heading=f"Round {context.round_index} Vote Results",
-                content=f"Player {selected_player_id} {outcome_verb} with {max_votes} vote(s).",
+                content=(
+                    f"Player {selected_player_id} "
+                    f"{outcome_verb} with "
+                    f"{max_votes} vote(s)."
+                ),
                 visibility=context.history.player_ids,
             )
 
@@ -202,12 +212,22 @@ def phase_votes(context: RoundContext) -> None:
         else:
             selected_player_id = random.choice(tied_players)
             context.logger.info(
-                f"Tie between {tied_players} with {max_votes} vote(s). Randomly selecting Player {selected_player_id} {outcome_verb}."
+                f"Tie between {tied_players} with "
+                f"{max_votes} vote(s). Randomly selecting "
+                f"Player {selected_player_id} "
+                f"{outcome_verb}."
             )
             context.history.narrate(
                 round_index=context.round_index,
                 heading=f"Round {context.round_index} Vote Results",
-                content=f"There is a tie between {tied_players} with {max_votes} vote(s), so we are randomly selecting one player. Player {selected_player_id} {outcome_verb}.",
+                content=(
+                    f"There is a tie between "
+                    f"{tied_players} with "
+                    f"{max_votes} vote(s), so we are "
+                    f"randomly selecting one player. "
+                    f"Player {selected_player_id} "
+                    f"{outcome_verb}."
+                ),
                 visibility=context.history.player_ids,
             )
 
