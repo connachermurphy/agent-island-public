@@ -1,0 +1,29 @@
+# Player configuration (TOML)
+# Secrets stay in your environment (.env). Set OPENROUTER_API_KEY
+# to the environment variable that holds your API key.
+
+[[players]]
+player_id = "A"
+model = "nvidia/nemotron-3-nano-30b-a3b:free"
+character_prompt = "You are player A."
+
+[players.client_kwargs]
+max_tokens = 4096
+
+[[players]]
+player_id = "B"
+model = "nvidia/nemotron-3-nano-30b-a3b:free"
+character_prompt = "You are player B."
+
+[players.client_kwargs]
+max_tokens = 4096
+
+[[players]]
+player_id = "C"
+model = "nvidia/nemotron-3-nano-30b-a3b:free"
+character_prompt = "You are player C."
+
+[players.client_kwargs]
+max_tokens = 4096
+
+# Optionally add players.client_kwargs.reasoning

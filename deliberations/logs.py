@@ -62,6 +62,13 @@ def parse_args() -> argparse.Namespace:
         help="Include reasoning in the output",
     )
 
+    # Include usage
+    parser.add_argument(
+        "--include-usage",
+        action="store_true",
+        help="Include token usage and cost summary",
+    )
+
     # Parse
     args = parser.parse_args()
 
@@ -228,10 +235,17 @@ def build_outputs(
     linebreak: str,
     include_prompt: bool = False,
     include_reasoning: bool = False,
+    include_usage: bool = False,
 ) -> tuple[str, str]:
     # One pass over events, two renderers: terminal + Typst.
     terminal_lines: list[str] = []
     typst_content = build_typst_header()
+
+    total_cost = 0.0
+    total_input = 0
+    total_completion = 0
+    total_reasoning = 0
+    total_tokens = 0
 
     for round_index, round_log in game_history.items():
         terminal_lines.append(linebreak)
@@ -245,6 +259,35 @@ def build_outputs(
             typst_content += render_typst_event(
                 event, include_prompt, include_reasoning
             )
+
+            meta = event.get("metadata") or {}
+            total_cost += meta.get("cost", 0)
+            total_input += meta.get("input_tokens", 0)
+            total_completion += meta.get("completion_tokens", 0)
+            total_reasoning += meta.get("reasoning_tokens", 0)
+            total_tokens += meta.get("total_tokens", 0)
+
+    if include_usage:
+        usage_terminal = (
+            f"\n{linebreak}\n"
+            f"Usage Summary\n"
+            f"  Cost (USD):         ${total_cost:.4f}\n"
+            f"  Input tokens:       {total_input:,}\n"
+            f"  Completion tokens:  {total_completion:,}\n"
+            f"  Reasoning tokens:   {total_reasoning:,}\n"
+            f"  Total tokens:       {total_tokens:,}\n"
+        )
+        terminal_lines.append(usage_terminal)
+
+        usage_typst = (
+            f"\n= Usage Summary\n\n"
+            f"- *Cost (USD):* \\${total_cost:.4f}\n"
+            f"- *Input tokens:* {total_input:,}\n"
+            f"- *Completion tokens:* {total_completion:,}\n"
+            f"- *Reasoning tokens:* {total_reasoning:,}\n"
+            f"- *Total tokens:* {total_tokens:,}\n"
+        )
+        typst_content += usage_typst
 
     return ("\n".join(terminal_lines), typst_content)
 
@@ -282,7 +325,11 @@ if __name__ == "__main__":
         game_history = json.load(f)
 
     terminal_content, typst_content = build_outputs(
-        game_history, linebreak, args.include_prompts, args.include_reasoning
+        game_history,
+        linebreak,
+        args.include_prompts,
+        args.include_reasoning,
+        args.include_usage,
     )
 
     if args.terminal:

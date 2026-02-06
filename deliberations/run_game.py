@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     # Load player specifications from TOML config
     here = pathlib.Path(__file__).parent
-    config_path = here / "player_config.toml"
+    config_path = here / "player_config_free.toml"
     player_specs = load_player_specs_from_toml(str(config_path))
     num_players = len(player_specs)
 

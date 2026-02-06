@@ -102,6 +102,7 @@ To view and export logs from a gameplay session, you can use `logs.py` with vari
 - `--typst`: Export a `.typ` file for Typst typesetting in the `logs/` directory.
 - `--include-prompts`: Include prompts for each event in the output.
 - `--include-reasoning`: Include model reasoning in the output.
+- `--include-usage`: Append a usage summary (cumulative token counts and cost) to the output.
 
 Note, either `--terminal` or `--typst` must be set.
 
@@ -124,4 +125,9 @@ Here are some example uses:
 - To additionally include LLM reasoning summaries, add:
   ```
   uv run logs.py --filename gameplay_20251226_090757 --terminal --typst --include-prompts --include-reasoning
+  ```
+
+- To include a token usage and cost summary at the end of the output:
+  ```
+  uv run logs.py --filename gameplay_20251226_090757 --terminal --include-usage
   ```
