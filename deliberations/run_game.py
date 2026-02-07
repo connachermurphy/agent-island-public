@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import pathlib
@@ -38,9 +39,19 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
+    # Parse optional config path argument
+    parser = argparse.ArgumentParser(description="Run an Agent Island game")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default=None,
+        help="Path to a player config TOML file",
+    )
+    args = parser.parse_args()
+
     # Load player specifications from TOML config
     here = pathlib.Path(__file__).parent
-    config_path = here / "player_config_free.toml"
+    config_path = here / (args.config if args.config else "player_config.toml")
     player_specs = load_player_specs_from_toml(str(config_path))
     num_players = len(player_specs)
 

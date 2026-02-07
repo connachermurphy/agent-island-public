@@ -1,3 +1,4 @@
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -9,7 +10,7 @@ class LLMResponse:
     metadata: dict[str, Any] | None = None
 
 
-def parse_openrouter_response(raw: Any) -> LLMResponse:
+def parse_openrouter_response(raw: Any, client: Any = None) -> LLMResponse:
     if raw is None:
         return LLMResponse(text="", reasoning=None, metadata=None)
 
@@ -18,11 +19,20 @@ def parse_openrouter_response(raw: Any) -> LLMResponse:
     reasoning = (
         _as_str(_get_attr(message, ["reasoning"])) if message is not None else None
     )
+    metadata = _extract_usage(raw) or {}
+
+    generation_id = getattr(raw, "id", None)
+    if generation_id and client is not None:
+        time.sleep(2)
+        gen = client.generations.get_generation(id=generation_id)
+        total_cost = getattr(gen.data, "total_cost", None)
+        if total_cost is not None:
+            metadata["cost"] = total_cost
 
     return LLMResponse(
         text=text or "",
         reasoning=reasoning,
-        metadata=_extract_usage(raw) or None,
+        metadata=metadata or None,
     )
 
 
@@ -50,7 +60,6 @@ def _extract_usage(raw: Any) -> dict[str, Any]:
 
     result: dict[str, Any] = {}
 
-    result["cost"] = _as_float(_get_attr(usage, ["cost"])) or 0.0
     result["input_tokens"] = _as_int(_get_attr(usage, ["prompt_tokens"]))
     result["completion_tokens"] = _as_int(_get_attr(usage, ["completion_tokens"]))
     result["total_tokens"] = _as_int(_get_attr(usage, ["total_tokens"]))

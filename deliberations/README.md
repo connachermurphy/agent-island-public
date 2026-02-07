@@ -9,6 +9,11 @@ Introducing season 3 of Agent Island, Deliberations.
 uv run run_game.py
 ```
 
+To use a custom player config file:
+```bash
+uv run run_game.py --config my_config.toml
+```
+
 ### Customizing players
 Edit `player_config.toml` to configure player models, character prompts, and parameters.
 
