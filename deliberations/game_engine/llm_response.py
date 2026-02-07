@@ -1,3 +1,4 @@
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -9,7 +10,7 @@ class LLMResponse:
     metadata: dict[str, Any] | None = None
 
 
-def parse_openrouter_response(raw: Any) -> LLMResponse:
+def parse_openrouter_response(raw: Any, client: Any = None) -> LLMResponse:
     if raw is None:
         return LLMResponse(text="", reasoning=None, metadata=None)
 
@@ -18,11 +19,20 @@ def parse_openrouter_response(raw: Any) -> LLMResponse:
     reasoning = (
         _as_str(_get_attr(message, ["reasoning"])) if message is not None else None
     )
+    metadata = _extract_usage(raw) or {}
+
+    generation_id = getattr(raw, "id", None)
+    if generation_id and client is not None:
+        time.sleep(2)
+        gen = client.generations.get_generation(id=generation_id)
+        total_cost = getattr(gen.data, "total_cost", None)
+        if total_cost is not None:
+            metadata["cost"] = total_cost
 
     return LLMResponse(
         text=text or "",
         reasoning=reasoning,
-        metadata=None,
+        metadata=metadata or None,
     )
 
 
@@ -42,6 +52,27 @@ def _extract_message(raw: Any) -> Any | None:
     return None
 
 
+def _extract_usage(raw: Any) -> dict[str, Any]:
+    """Extract token counts and cost from an OpenRouter response."""
+    usage = _get_attr(raw, ["usage"])
+    if usage is None:
+        return {}
+
+    result: dict[str, Any] = {}
+
+    result["input_tokens"] = _as_int(_get_attr(usage, ["prompt_tokens"]))
+    result["completion_tokens"] = _as_int(_get_attr(usage, ["completion_tokens"]))
+    result["total_tokens"] = _as_int(_get_attr(usage, ["total_tokens"]))
+
+    ct_details = _get_attr(usage, ["completion_tokens_details"])
+    if ct_details is not None:
+        result["reasoning_tokens"] = _as_int(
+            _get_attr(ct_details, ["reasoning_tokens"])
+        )
+
+    return {k: v for k, v in result.items() if v is not None}
+
+
 def _get_attr(obj: Any, names: list[str]) -> Any | None:
     if obj is None:
         return None
@@ -51,6 +82,24 @@ def _get_attr(obj: Any, names: list[str]) -> Any | None:
         if isinstance(obj, dict) and name in obj:
             return obj.get(name)
     return None
+
+
+def _as_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _as_int(value: Any) -> int | None:
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _as_str(value: Any) -> str | None:

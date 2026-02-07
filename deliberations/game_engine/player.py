@@ -61,7 +61,7 @@ class Player:
             messages=messages,
             **self.config.client_kwargs,
         )
-        return parse_openrouter_response(response)
+        return parse_openrouter_response(response, client=self.client)
 
     def extract_vote(self, content: str, valid_player_ids: list[str]) -> Optional[str]:
         """

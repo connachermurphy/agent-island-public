@@ -1,0 +1,28 @@
+# Player configuration (TOML)
+# Secrets stay in your environment (.env). Set OPENROUTER_API_KEY
+# to the environment variable that holds your API key.
+
+[[players]]
+player_id = "A"
+model = "openai/gpt-5.2"
+character_prompt = "You are player A."
+
+[[players]]
+player_id = "B"
+model = "anthropic/claude-opus-4.6"
+character_prompt = "You are player B."
+
+[[players]]
+player_id = "C"
+model = "google/gemini-3-pro-preview"
+character_prompt = "You are player C."
+
+[[players]]
+player_id = "D"
+model = "x-ai/grok-4"
+character_prompt = "You are player D."
+
+[[players]]
+player_id = "E"
+model = "google/gemini-2.5-pro"
+character_prompt = "You are player E."
