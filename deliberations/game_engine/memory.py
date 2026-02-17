@@ -107,7 +107,8 @@ class SummarizationStrategy(MemoryStrategy):
 {player.config.character_prompt}
 
 Please briefly summarize the events of this round.
-This summary will be the only context on the events of this round that you will have in future rounds.
+This summary will be the only context on the events of this round
+that you will have in future rounds.
 Other players will not be able to see your summary."""
 
         response = player.respond(

@@ -164,7 +164,7 @@ class History:
         heading: str,
         content: str,
         visibility: List[str],
-        active_visibility: List[str]
+        active_visibility: List[str],
     ) -> None:
         """
         Add a narrator message to the game history.

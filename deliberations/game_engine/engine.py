@@ -152,7 +152,10 @@ class GameEngine:
                 players=self.players,
                 active_player_ids=active_player_ids,
             )
-            round = Round(context=round_context, phases=[phase_pitches, phase_votes, phase_consolidate_memory])
+            round = Round(
+                context=round_context,
+                phases=[phase_pitches, phase_votes, phase_consolidate_memory],
+            )
             round.play()
 
             self.game_config.logger.info(
@@ -187,8 +190,7 @@ class GameEngine:
             output = {
                 "history": self.history.to_dict(),
                 "memory": {
-                    p.config.player_id: p.memory.to_dict()
-                    for p in self.players
+                    p.config.player_id: p.memory.to_dict() for p in self.players
                 },
             }
             json.dump(output, f, indent=2)
