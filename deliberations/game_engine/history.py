@@ -13,6 +13,7 @@ class Event:
         prompt: The prompt provided to the player
         content: The content of the event (player content or narrator message)
         visibility: The visibility of the event content
+        active_visibility: Mutable version of visibility to track summarization
         reasoning: The reasoning provided by the player
         metadata: Parsed metadata about the response (if available)
     """
@@ -22,6 +23,7 @@ class Event:
     prompt: str
     content: str
     visibility: List[str]
+    active_visibility: List[str]
     reasoning: str | None = None
     metadata: Dict[str, Any] | None = None
 
@@ -32,6 +34,7 @@ class Event:
             "prompt": self.prompt,
             "content": self.content,
             "visibility": self.visibility,
+            "active_visibility": self.active_visibility,
             "reasoning": self.reasoning,
             "metadata": self.metadata,
         }
@@ -121,6 +124,7 @@ class History:
         prompt: str,
         content: str,
         visibility: List[str],
+        active_visibility: List[str],
         reasoning: str | None = None,
         metadata: Dict[str, Any] | None = None,
     ) -> None:
@@ -134,6 +138,7 @@ class History:
         prompt: The prompt provided to the player
         content: The content of the event (player content or narrator message)
         visibility: The visibility of the event content
+        active_visibility: Mutable version of visibility to track summarization
         reasoning: The reasoning provided by the player
         metadata: Parsed metadata about the response (if available)
 
@@ -147,6 +152,7 @@ class History:
                 prompt=prompt,
                 content=content,
                 visibility=visibility,
+                active_visibility=active_visibility,
                 reasoning=reasoning,
                 metadata=metadata,
             )
@@ -158,6 +164,7 @@ class History:
         heading: str,
         content: str,
         visibility: List[str],
+        active_visibility: List[str]
     ) -> None:
         """
         Add a narrator message to the game history.
@@ -167,6 +174,7 @@ class History:
             heading: The heading of the event
             content: The content of the event
             visibility: The visibility of the event
+            active_visibility: Mutable version of visibility to track summarization
 
         Returns:
             None
@@ -178,6 +186,7 @@ class History:
             prompt="N/A",
             content=content,
             visibility=visibility,
+            active_visibility=active_visibility,
         )
 
     def render_for_player(self, player_id: str) -> str:
@@ -198,7 +207,7 @@ class History:
         for round_log in self.rounds.values():
             parts.append(f"Round {round_log.round_index}:")
             for event in round_log.events:
-                if player_id in event.visibility:
+                if player_id in event.active_visibility:
                     parts.append(f"{event.heading}:")
                     parts.append(f"{event.content}\n")
         parts.append("</game_history>")

@@ -29,6 +29,7 @@ def load_player_specs_from_toml(config_path: str) -> list[dict]:
             "model": p["model"],
             "api_key": OPENROUTER_API_KEY,
             "client_kwargs": p.get("client_kwargs", {}),
+            "memory_strategy": p.get("memory_strategy", "none"),
         }
         specs.append(spec)
     return specs

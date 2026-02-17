@@ -8,7 +8,7 @@ from typing import List
 from .history import History
 from .player import Player, PlayerConfig
 from .round import Round, RoundContext
-from .round_phases import phase_pitches, phase_votes
+from .round_phases import phase_consolidate_memory, phase_pitches, phase_votes
 
 
 @dataclass
@@ -152,7 +152,7 @@ class GameEngine:
                 players=self.players,
                 active_player_ids=active_player_ids,
             )
-            round = Round(context=round_context, phases=[phase_pitches, phase_votes])
+            round = Round(context=round_context, phases=[phase_pitches, phase_votes, phase_consolidate_memory])
             round.play()
 
             self.game_config.logger.info(
@@ -184,5 +184,12 @@ class GameEngine:
             self.game_config.logs_dir, f"gameplay_{timestamp}.json"
         )
         with open(output_path, "w") as f:
-            json.dump(self.history.to_dict(), f, indent=2)
+            output = {
+                "history": self.history.to_dict(),
+                "memory": {
+                    p.config.player_id: p.memory.to_dict()
+                    for p in self.players
+                },
+            }
+            json.dump(output, f, indent=2)
         self.game_config.logger.info("Wrote game history to %s", output_path)
