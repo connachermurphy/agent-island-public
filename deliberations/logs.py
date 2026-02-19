@@ -67,8 +67,12 @@ def render_html_event(
     parts.append(f'  <div class="event-heading">{html.escape(heading)}</div>')
 
     if not is_narrator:
-        vis_str = ", ".join(visibility) if isinstance(visibility, list) else str(visibility)
-        parts.append(f'  <div class="event-visibility">visibility: {html.escape(vis_str)}</div>')
+        vis_str = (
+            ", ".join(visibility) if isinstance(visibility, list) else str(visibility)
+        )
+        parts.append(
+            f'  <div class="event-visibility">visibility: {html.escape(vis_str)}</div>'
+        )
 
         if include_prompt:
             parts.append('  <details class="prompt">')
@@ -79,7 +83,9 @@ def render_html_event(
         if include_reasoning:
             parts.append('  <details class="reasoning">')
             parts.append("    <summary>Reasoning</summary>")
-            parts.append(f'    <pre class="reasoning-content">{html.escape(reasoning)}</pre>')
+            parts.append(
+                f'    <pre class="reasoning-content">{html.escape(reasoning)}</pre>'
+            )
             parts.append("  </details>")
 
     parts.append('  <div class="response">')
@@ -110,9 +116,17 @@ def render_players(players: dict) -> str:
             summary_parts.append(f"{k}={v}")
         summary = " | ".join(summary_parts)
 
+        header = (
+            f'    <div class="player-header">'
+            f"{html.escape(player_id)}: {html.escape(summary)}</div>"
+        )
+        char = (
+            f'    <div class="player-character-prompt">'
+            f"{html.escape(character_prompt)}</div>"
+        )
         parts.append('  <div class="player">')
-        parts.append(f'    <div class="player-header">{html.escape(player_id)}: {html.escape(summary)}</div>')
-        parts.append(f'    <div class="player-character-prompt">{html.escape(character_prompt)}</div>')
+        parts.append(header)
+        parts.append(char)
         parts.append("  </div>")
 
     parts.append("</section>")
@@ -146,12 +160,16 @@ def build_outputs(
         active_ids = round_log.get("active_player_ids", [])
         active_str = ", ".join(active_ids)
 
-        body_parts.append(f'<section class="round">')
+        body_parts.append('<section class="round">')
         body_parts.append(f"  <h2>Round {html.escape(str(round_index))}</h2>")
-        body_parts.append(f'  <div class="round-meta">Active Players: {html.escape(active_str)}</div>')
+        body_parts.append(
+            f'  <div class="round-meta">Active Players: {html.escape(active_str)}</div>'
+        )
 
         for event in round_log["events"]:
-            body_parts.append(render_html_event(event, include_prompt, include_reasoning))
+            body_parts.append(
+                render_html_event(event, include_prompt, include_reasoning)
+            )
 
             meta = event.get("metadata") or {}
             total_cost += meta.get("cost", 0)
@@ -173,7 +191,9 @@ def build_outputs(
         body_parts.append(f"    <li>Completion tokens: {total_completion:,}</li>")
         body_parts.append(f"    <li>Reasoning tokens: {total_reasoning:,}</li>")
         body_parts.append(f"    <li>Total tokens: {total_tokens:,}</li>")
-        body_parts.append(f"    <li>Cost retrieval failures: {cost_retrieval_failures}</li>")
+        body_parts.append(
+            f"    <li>Cost retrieval failures: {cost_retrieval_failures}</li>"
+        )
         body_parts.append("  </ul>")
         body_parts.append("</section>")
 

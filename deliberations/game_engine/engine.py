@@ -190,9 +190,7 @@ class GameEngine:
             output = {
                 "players": {
                     p.config.player_id: {
-                        k: v
-                        for k, v in asdict(p.config).items()
-                        if k != "api_key"
+                        k: v for k, v in asdict(p.config).items() if k != "api_key"
                     }
                     for p in self.players
                 },
