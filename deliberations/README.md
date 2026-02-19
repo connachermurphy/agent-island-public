@@ -95,7 +95,7 @@ Each event stores `heading`, `role`, `prompt`, `content`, `visibility`, and opti
 The history is json-serializable and is thus stored as a json.
 
 ## Logs
-`logs.py` reads a gameplay JSON from the `logs/` directory and writes an `.html` file alongside it. Open the HTML in any browser; styles live in `logs/logs.css`.
+`logs.py` reads a gameplay JSON from the `logs/` directory and writes an `.html` file alongside it. Open the HTML in any browser; styles live in `logs.css` (alongside `logs.py`).
 
 Arguments:
 - `--filename`: Name (without extension) of the gameplay log JSON file (must exist in the `logs/` directory).

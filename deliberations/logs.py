@@ -135,7 +135,7 @@ def render_players(players: dict) -> str:
 
 def build_outputs(
     game_history: dict,
-    players: dict = {},
+    players: dict | None = None,
     include_prompt: bool = False,
     include_reasoning: bool = False,
     include_usage: bool = False,
@@ -145,7 +145,7 @@ def build_outputs(
     """
     body_parts: list[str] = []
 
-    players_html = render_players(players)
+    players_html = render_players(players or {})
     if players_html:
         body_parts.append(players_html)
 
