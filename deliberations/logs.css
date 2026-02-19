@@ -1,1 +1,129 @@
 /* Agent Island: Deliberations — log styles */
+
+/* ── Base ── */
+body.game-log {
+  font-family: system-ui, sans-serif;
+  max-width: 860px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  color: #1a1a1a;
+  background: #f9f9f9;
+}
+
+h1, h2 {
+  font-weight: 600;
+}
+
+/* ── Players ── */
+section.players {
+  border: 1.5px solid #c0c0c0;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  background: #fff;
+}
+
+.player {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e8e8e8;
+}
+
+.player:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.player-header {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.player-character-prompt {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  color: #555;
+  white-space: pre-wrap;
+}
+
+/* ── Rounds ── */
+section.round {
+  margin-bottom: 2.5rem;
+}
+
+.round-meta {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Events ── */
+.event {
+  border: 1.5px solid #c0c0c0;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  background: #fff;
+}
+
+.narrator-event {
+  border-color: #a0a0a0;
+  background: #f4f4f4;
+}
+
+.event-heading {
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.event-visibility {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Prompts & Reasoning (expanders) ── */
+details.prompt,
+details.reasoning {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
+  margin-bottom: 0.5rem;
+  background: #fafafa;
+}
+
+details summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  user-select: none;
+}
+
+details[open] summary {
+  margin-bottom: 0.5rem;
+}
+
+/* ── Pre blocks ── */
+pre {
+  margin: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.82rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Usage Summary ── */
+section.usage-summary {
+  border: 1.5px solid #c0c0c0;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  background: #fff;
+}
+
+section.usage-summary ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+}
