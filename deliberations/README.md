@@ -25,8 +25,9 @@ Edit `player_config.toml` to configure player models, character prompts, and par
 
 ### Viewing game logs
 ```bash
-uv run logs.py --filename <gameplay_filename> --terminal
+uv run logs.py --filename <gameplay_filename>
 ```
+This writes an HTML file to the `logs/` directory.
 
 ## Project Structure
 
@@ -94,38 +95,26 @@ Each event stores `heading`, `role`, `prompt`, `content`, `visibility`, and opti
 The history is json-serializable and is thus stored as a json.
 
 ## Logs
-To view and export logs from a gameplay session, you can use `logs.py` with various command-line arguments:
+`logs.py` reads a gameplay JSON from the `logs/` directory and writes an `.html` file alongside it. Open the HTML in any browser; styles live in `logs.css` (alongside `logs.py`).
+
+Arguments:
 - `--filename`: Name (without extension) of the gameplay log JSON file (must exist in the `logs/` directory).
-- `--terminal`: Print log output to the terminal.
-- `--typst`: Export a `.typ` file for Typst typesetting in the `logs/` directory.
-- `--include-prompts`: Include prompts for each event in the output.
-- `--include-reasoning`: Include model reasoning in the output.
-- `--include-usage`: Append a usage summary (cumulative token counts and cost) to the output.
+- `--include-prompts`: Include the full prompt sent to each player (shown in a collapsible expander).
+- `--include-reasoning`: Include model reasoning (shown in a collapsible expander).
+- `--include-usage`: Append a usage summary (cumulative token counts and cost) at the end.
 
-Note, either `--terminal` or `--typst` must be set.
-
-Here are some example uses:
-- To print the gameplay log to the terminal:
+Example uses:
+- Basic log view:
   ```
-  uv run logs.py --filename gameplay_20251226_090757 --terminal
+  uv run logs.py --filename gameplay_20251226_090757
   ```
 
-- To print to the terminal *and* export the log to a Typst file for prettier formatting:
+- Include prompts and reasoning:
   ```
-  uv run logs.py --filename gameplay_20251226_090757 --terminal --typst
-  ```
-
-- To include the prompts shown to players in the output:
-  ```
-  uv run logs.py --filename gameplay_20251226_090757 --terminal --typst --include-prompts
+  uv run logs.py --filename gameplay_20251226_090757 --include-prompts --include-reasoning
   ```
 
-- To additionally include LLM reasoning summaries, add:
+- Include token usage and cost summary:
   ```
-  uv run logs.py --filename gameplay_20251226_090757 --terminal --typst --include-prompts --include-reasoning
-  ```
-
-- To include a token usage and cost summary at the end of the output:
-  ```
-  uv run logs.py --filename gameplay_20251226_090757 --terminal --include-usage
+  uv run logs.py --filename gameplay_20251226_090757 --include-usage
   ```
