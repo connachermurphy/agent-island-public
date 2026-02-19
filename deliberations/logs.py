@@ -184,7 +184,7 @@ def build_outputs(
 <head>
   <meta charset="utf-8">
   <title>Agent Island: Deliberations</title>
-  <link rel="stylesheet" href="logs.css">
+  <link rel="stylesheet" href="../logs.css">
 </head>
 <body class="game-log">
   <h1>Agent Island: Deliberations</h1>
