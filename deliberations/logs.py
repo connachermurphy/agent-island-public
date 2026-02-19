@@ -330,7 +330,7 @@ if __name__ == "__main__":
         game_history = json.load(f)
 
     terminal_content, typst_content = build_outputs(
-        game_history,
+        game_history["history"],
         linebreak,
         args.include_prompts,
         args.include_reasoning,
