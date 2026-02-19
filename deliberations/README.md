@@ -4,6 +4,12 @@ Introducing season 3 of Agent Island, Deliberations.
 
 ## Quick Start
 
+### Initalize environment
+
+```
+uv sync
+```
+
 ### Running a game
 ```bash
 uv run run_game.py
@@ -86,19 +92,6 @@ History: one for each game
 Each event stores `heading`, `role`, `prompt`, `content`, `visibility`, and optional
 `reasoning` and `metadata` fields. The full model response is not persisted.
 The history is json-serializable and is thus stored as a json.
-
-## Usage
-
-To set up your virtual environment and install dependencies, run:
-
-```bash
-uv sync
-```
-
-To run a sample game, execute:
-```bash
-uv run run_game.py
-```
 
 ## Logs
 To view and export logs from a gameplay session, you can use `logs.py` with various command-line arguments:

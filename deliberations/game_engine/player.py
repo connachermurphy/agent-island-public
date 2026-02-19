@@ -5,6 +5,7 @@ from typing import Optional
 from openrouter import OpenRouter
 
 from .llm_response import LLMResponse, parse_openrouter_response
+from .memory import MemoryStrategy, create_strategy
 
 
 @dataclass
@@ -26,6 +27,7 @@ class PlayerConfig:
     model: str
     api_key: str
     client_kwargs: dict
+    memory_strategy: str = "none"
 
 
 class Player:
@@ -39,6 +41,7 @@ class Player:
         """
         self.config = config
         self.client = OpenRouter(api_key=config.api_key)
+        self.memory: MemoryStrategy = create_strategy(config.memory_strategy)
 
     def respond(
         self,

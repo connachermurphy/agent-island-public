@@ -42,7 +42,10 @@ def phase_pitches(context: RoundContext) -> None:
 
         # Elicit the pitch from the player
         context.logger.info(f"Player {player.config.player_id} is making their pitch")
+        memory_context = player.memory.render()
         visible_events = context.history.render_for_player(player.config.player_id)
+        if memory_context:
+            visible_events = f"{memory_context}\n\n{visible_events}"
         system_prompt = f"""
 {context.rules_prompt}
 
@@ -74,6 +77,7 @@ Other players will be able to see your pitch.
             reasoning=response.reasoning,
             metadata=response.metadata,
             visibility=context.history.player_ids,
+            active_visibility=context.history.player_ids.copy(),
         )
 
 
@@ -112,7 +116,10 @@ def phase_votes(context: RoundContext) -> None:
 
         # Elicit the vote from the player
         context.logger.info(f"Player {voter} is voting")
+        memory_context = player.memory.render()
         visible_events = context.history.render_for_player(voter)
+        if memory_context:
+            visible_events = f"{memory_context}\n\n{visible_events}"
 
         # Permute candidates at the voter level to avoid order effects
         # Exclude the active voter from the candidates
@@ -157,6 +164,7 @@ def phase_votes(context: RoundContext) -> None:
             reasoning=response.reasoning,
             metadata=response.metadata,
             visibility=[player.config.player_id],
+            active_visibility=[player.config.player_id],
         )
 
         # Extract the vote from the player content
@@ -185,6 +193,7 @@ def phase_votes(context: RoundContext) -> None:
                 f"{selected_player_id} {outcome_verb}."
             ),
             visibility=context.history.player_ids,
+            active_visibility=context.history.player_ids.copy(),
         )
     else:
         # If there are valid votes, find the player with the most votes
@@ -206,6 +215,7 @@ def phase_votes(context: RoundContext) -> None:
                     f"{max_votes} vote(s)."
                 ),
                 visibility=context.history.player_ids,
+                active_visibility=context.history.player_ids.copy(),
             )
 
         # If there is a tie, randomly select a player from the tied players
@@ -229,6 +239,37 @@ def phase_votes(context: RoundContext) -> None:
                     f"{outcome_verb}."
                 ),
                 visibility=context.history.player_ids,
+                active_visibility=context.history.player_ids.copy(),
             )
 
     context.votes["selected_player"] = selected_player_id
+
+
+def phase_consolidate_memory(context: RoundContext) -> None:
+    """
+    Each player consolidates events into memory according to their
+    configured strategy.
+
+    Runs for all players (active and eliminated) to ensure uniform
+    context management.
+
+    Args:
+        context: The round context
+
+    Returns:
+        None
+    """
+    all_player_ids = context.active_player_ids + context.eliminated_player_ids
+
+    for player_id in permute_player_ids(all_player_ids):
+        player = next(
+            player for player in context.players if player.config.player_id == player_id
+        )
+
+        context.logger.info(f"Player {player_id} is consolidating memory")
+        player.memory.consolidate(
+            player=player,
+            history=context.history,
+            round_index=context.round_index,
+            rules_prompt=context.rules_prompt,
+        )
