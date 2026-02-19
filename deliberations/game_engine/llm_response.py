@@ -24,10 +24,13 @@ def parse_openrouter_response(raw: Any, client: Any = None) -> LLMResponse:
     generation_id = getattr(raw, "id", None)
     if generation_id and client is not None:
         time.sleep(2)
-        gen = client.generations.get_generation(id=generation_id)
-        total_cost = getattr(gen.data, "total_cost", None)
-        if total_cost is not None:
-            metadata["cost"] = total_cost
+        try:
+            gen = client.generations.get_generation(id=generation_id)
+            total_cost = getattr(gen.data, "total_cost", None)
+            if total_cost is not None:
+                metadata["cost"] = total_cost
+        except Exception:
+            metadata["cost_retrieval_failed"] = True
 
     return LLMResponse(
         text=text or "",

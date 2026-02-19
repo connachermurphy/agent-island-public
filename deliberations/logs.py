@@ -246,6 +246,7 @@ def build_outputs(
     total_completion = 0
     total_reasoning = 0
     total_tokens = 0
+    cost_retrieval_failures = 0
 
     for round_index, round_log in game_history.items():
         terminal_lines.append(linebreak)
@@ -266,6 +267,8 @@ def build_outputs(
             total_completion += meta.get("completion_tokens", 0)
             total_reasoning += meta.get("reasoning_tokens", 0)
             total_tokens += meta.get("total_tokens", 0)
+            if meta.get("cost_retrieval_failed"):
+                cost_retrieval_failures += 1
 
     if include_usage:
         usage_terminal = (
@@ -276,6 +279,7 @@ def build_outputs(
             f"  Completion tokens:  {total_completion:,}\n"
             f"  Reasoning tokens:   {total_reasoning:,}\n"
             f"  Total tokens:       {total_tokens:,}\n"
+            f"  Cost retrieval failures: {cost_retrieval_failures}\n"
         )
         terminal_lines.append(usage_terminal)
 
@@ -286,6 +290,7 @@ def build_outputs(
             f"- *Completion tokens:* {total_completion:,}\n"
             f"- *Reasoning tokens:* {total_reasoning:,}\n"
             f"- *Total tokens:* {total_tokens:,}\n"
+            f"- *Cost retrieval failures:* {cost_retrieval_failures}\n"
         )
         typst_content += usage_typst
 

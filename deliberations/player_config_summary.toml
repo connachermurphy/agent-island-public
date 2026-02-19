@@ -1,0 +1,21 @@
+# Player configuration (TOML)
+# Secrets stay in your environment (.env). Set OPENROUTER_API_KEY
+# to the environment variable that holds your API key.
+
+[[players]]
+player_id = "C"
+model = "google/gemini-3-pro-preview"
+character_prompt = "You are player C."
+memory_strategy = "summarization"
+
+[[players]]
+player_id = "D"
+model = "x-ai/grok-4"
+character_prompt = "You are player D."
+memory_strategy = "summarization"
+
+[[players]]
+player_id = "E"
+model = "google/gemini-2.5-pro"
+character_prompt = "You are player E."
+memory_strategy = "summarization"
