@@ -230,9 +230,41 @@ def build_typst_header() -> str:
 """
 
 
+def render_players(players: dict) -> tuple[str, str]:
+    """
+    Render the players section for terminal and Typst outputs.
+    """
+    if not players:
+        return "", ""
+
+    terminal_lines = ["Players"]
+    typst_lines = ["= Players\n"]
+
+    for player_id, config in players.items():
+        model = config.get("model", "unknown")
+        memory = config.get("memory_strategy", "none")
+        client_kwargs = config.get("client_kwargs", {})
+        character_prompt = config.get("character_prompt", "")
+
+        # Build the summary line: model | memory=... | kwarg=val ...
+        parts = [f"{model}", f"memory={memory}"]
+        for k, v in client_kwargs.items():
+            parts.append(f"{k}={v}")
+        summary = " | ".join(parts)
+
+        terminal_lines.append(f"  {player_id}: {summary}")
+        terminal_lines.append(f"    character_prompt: {character_prompt}")
+
+        typst_lines.append(f"- *{player_id}:* {add_escape_characters(summary)}")
+        typst_lines.append(f"\n  _character\\_prompt:_ {add_escape_characters(character_prompt)}\n")
+
+    return "\n".join(terminal_lines), "\n".join(typst_lines)
+
+
 def build_outputs(
     game_history: dict,
     linebreak: str,
+    players: dict = {},
     include_prompt: bool = False,
     include_reasoning: bool = False,
     include_usage: bool = False,
@@ -240,6 +272,13 @@ def build_outputs(
     # One pass over events, two renderers: terminal + Typst.
     terminal_lines: list[str] = []
     typst_content = build_typst_header()
+
+    players_terminal, players_typst = render_players(players)
+    if players_terminal:
+        terminal_lines.append(linebreak)
+        terminal_lines.append(players_terminal)
+    if players_typst:
+        typst_content += players_typst + "\n"
 
     total_cost = 0.0
     total_input = 0
@@ -332,9 +371,10 @@ if __name__ == "__main__":
     terminal_content, typst_content = build_outputs(
         game_history["history"],
         linebreak,
-        args.include_prompts,
-        args.include_reasoning,
-        args.include_usage,
+        players=game_history.get("players", {}),
+        include_prompt=args.include_prompts,
+        include_reasoning=args.include_reasoning,
+        include_usage=args.include_usage,
     )
 
     if args.terminal:

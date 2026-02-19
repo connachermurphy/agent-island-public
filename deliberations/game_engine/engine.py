@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import List
 
@@ -188,10 +188,15 @@ class GameEngine:
         )
         with open(output_path, "w") as f:
             output = {
-                "history": self.history.to_dict(),
-                "memory": {
-                    p.config.player_id: p.memory.to_dict() for p in self.players
+                "players": {
+                    p.config.player_id: {
+                        k: v
+                        for k, v in asdict(p.config).items()
+                        if k != "api_key"
+                    }
+                    for p in self.players
                 },
+                "history": self.history.to_dict(),
             }
             json.dump(output, f, indent=2)
         self.game_config.logger.info("Wrote game history to %s", output_path)
