@@ -10,7 +10,9 @@ class LLMResponse:
     metadata: dict[str, Any] | None = None
 
 
-def parse_openrouter_response(raw: Any, client: Any = None) -> LLMResponse:
+def parse_openrouter_response(
+    raw: Any, client: Any = None, max_attempts: int = 3, retry_delay: float = 2.0
+) -> LLMResponse:
     if raw is None:
         return LLMResponse(text="", reasoning=None, metadata=None)
 
@@ -23,14 +25,19 @@ def parse_openrouter_response(raw: Any, client: Any = None) -> LLMResponse:
 
     generation_id = getattr(raw, "id", None)
     if generation_id and client is not None:
-        time.sleep(2)
-        try:
-            gen = client.generations.get_generation(id=generation_id)
-            total_cost = getattr(gen.data, "total_cost", None)
-            if total_cost is not None:
-                metadata["cost"] = total_cost
-        except Exception:
-            metadata["cost_retrieval_failed"] = True
+        delay = retry_delay
+        for attempt in range(max_attempts):
+            time.sleep(delay)
+            try:
+                gen = client.generations.get_generation(id=generation_id)
+                total_cost = getattr(gen.data, "total_cost", None)
+                if total_cost is not None:
+                    metadata["cost"] = total_cost
+                break
+            except Exception:
+                if attempt == max_attempts - 1:
+                    metadata["cost_retrieval_failed"] = True
+                delay *= 2
 
     return LLMResponse(
         text=text or "",
