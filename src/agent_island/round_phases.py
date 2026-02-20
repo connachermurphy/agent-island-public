@@ -1,4 +1,5 @@
 import random
+from typing import Callable
 
 from .round import RoundContext
 
@@ -273,3 +274,10 @@ def phase_consolidate_memory(context: RoundContext) -> None:
             round_index=context.round_index,
             rules_prompt=context.rules_prompt,
         )
+
+
+PHASE_REGISTRY: dict[str, Callable[[RoundContext], None]] = {
+    "pitches": phase_pitches,
+    "votes": phase_votes,
+    "consolidate_memory": phase_consolidate_memory,
+}
