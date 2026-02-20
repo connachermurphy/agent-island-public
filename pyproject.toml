@@ -9,6 +9,9 @@ authors = [
 requires-python = ">=3.12"
 dependencies = []
 
+[project.scripts]
+agent-island = "agent_island.cli:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
