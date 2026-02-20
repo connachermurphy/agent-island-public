@@ -1,3 +1,18 @@
+[project]
+name = "agent-island"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { email = "connacher.murphy@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [tool.ruff]
 # Standard linting rules
 lint.select = ["E", "F", "I", "W"]
@@ -14,7 +29,7 @@ exclude = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["deliberations"]
+known-first-party = ["agent_island"]
 
 [tool.ruff.format]
 quote-style = "double"
