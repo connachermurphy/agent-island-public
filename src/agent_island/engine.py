@@ -8,23 +8,21 @@ from typing import List
 from .history import History
 from .player import Player, PlayerConfig
 from .round import Round, RoundContext
-from .round_phases import phase_consolidate_memory, phase_pitches, phase_votes
+from .round_phases import PHASE_REGISTRY
 
 
 @dataclass
-class GameEngineConfig:
+class GameConfig:
     """
-    Configuration for the GameEngine
+    Configuration for the game
 
     Args:
-        logger: Logger for the GameEngine
-        player_configs: List of PlayerConfig objects
+        phases: Ordered list of phase names (must be keys in PHASE_REGISTRY)
         logs_dir: Directory to save logs
         rules_prompt: Prompt with the rules of the game
     """
 
-    logger: logging.Logger
-    player_configs: list[PlayerConfig]
+    phases: list[str]
     logs_dir: str
     rules_prompt: str
 
@@ -32,17 +30,22 @@ class GameEngineConfig:
 class GameEngine:
     def __init__(
         self,
-        game_config: GameEngineConfig,
+        game_config: GameConfig,
+        player_configs: list[PlayerConfig],
     ):
         """
         Initialize the GameEngine
 
         Args:
-            game_config: GameEngineConfig object
+            game_config: GameConfig object
+            player_configs: List of PlayerConfig objects
         """
         self.game_config = game_config
+        self.player_configs = player_configs
+        self.logger = logging.getLogger(__name__)
         self.players = self._initialize_players()
         self.history = History()
+        self._phases = [PHASE_REGISTRY[name] for name in game_config.phases]
 
     def _initialize_players(self) -> List[Player]:
         """
@@ -58,7 +61,7 @@ class GameEngine:
         players: List[Player] = []
 
         # Initialize the players from the player configurations
-        for player_config in self.game_config.player_configs:
+        for player_config in self.player_configs:
             player = Player(player_config)
             players.append(player)
 
@@ -99,7 +102,7 @@ class GameEngine:
             players=players,
             active_player_ids=active_player_ids,
             eliminated_player_ids=eliminated_player_ids,
-            logger=self.game_config.logger,
+            logger=self.logger,
             history=self.history,
             rules_prompt=self.game_config.rules_prompt,
         )
@@ -118,10 +121,10 @@ class GameEngine:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Log start of game
-        self.game_config.logger.info(f"Starting Deliberations game ({timestamp})")
+        self.logger.info(f"Starting Deliberations game ({timestamp})")
 
         num_players = len(self.players)
-        self.game_config.logger.info(f"{num_players} players")
+        self.logger.info(f"{num_players} players")
 
         # Store original set of player IDs in game history
         active_player_ids = [player.config.player_id for player in self.players]
@@ -143,7 +146,7 @@ class GameEngine:
                 outcome = "Eliminated"
 
             round_index += 1
-            self.game_config.logger.info(f"Round {round_index}")
+            self.logger.info(f"Round {round_index}")
 
             # Create pitch --> vote rounds and play
             round_context = self._create_round_context(
@@ -154,15 +157,15 @@ class GameEngine:
             )
             round = Round(
                 context=round_context,
-                phases=[phase_pitches, phase_votes, phase_consolidate_memory],
+                phases=self._phases,
             )
             round.play()
 
-            self.game_config.logger.info(
+            self.logger.info(
                 f"Vote tally: {round_context.votes['vote_tally']} (from engine.py)"
             )
 
-            self.game_config.logger.info(
+            self.logger.info(
                 f"{outcome} player: "
                 f"{round_context.votes['selected_player']} "
                 f"(from engine.py)"
@@ -177,7 +180,7 @@ class GameEngine:
                 if pid != round_context.votes["selected_player"]
             ]
 
-            self.game_config.logger.info(
+            self.logger.info(
                 f"Next round players: {[active_player_ids]} (from engine.py)"
             )
 
@@ -197,4 +200,4 @@ class GameEngine:
                 "history": self.history.to_dict(),
             }
             json.dump(output, f, indent=2)
-        self.game_config.logger.info("Wrote game history to %s", output_path)
+        self.logger.info("Wrote game history to %s", output_path)
