@@ -161,13 +161,10 @@ class GameEngine:
             )
             round.play()
 
-            self.logger.info(
-                f"Vote tally: {round_context.votes['vote_tally']}"
-            )
+            self.logger.info(f"Vote tally: {round_context.votes['vote_tally']}")
 
             self.logger.info(
-                f"{outcome} player: "
-                f"{round_context.votes['selected_player']}"
+                f"{outcome} player: {round_context.votes['selected_player']}"
             )
 
             # Remove eliminated player from active player IDs
@@ -179,9 +176,7 @@ class GameEngine:
                 if pid != round_context.votes["selected_player"]
             ]
 
-            self.logger.info(
-                f"Next round players: {active_player_ids}"
-            )
+            self.logger.info(f"Next round players: {active_player_ids}")
 
         os.makedirs(self.game_config.logs_dir, exist_ok=True)
 
