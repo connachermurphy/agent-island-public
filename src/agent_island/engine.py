@@ -121,7 +121,7 @@ class GameEngine:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Log start of game
-        self.logger.info(f"Starting Deliberations game ({timestamp})")
+        self.logger.info(f"Starting game ({timestamp})")
 
         num_players = len(self.players)
         self.logger.info(f"{num_players} players")
@@ -162,13 +162,12 @@ class GameEngine:
             round.play()
 
             self.logger.info(
-                f"Vote tally: {round_context.votes['vote_tally']} (from engine.py)"
+                f"Vote tally: {round_context.votes['vote_tally']}"
             )
 
             self.logger.info(
                 f"{outcome} player: "
-                f"{round_context.votes['selected_player']} "
-                f"(from engine.py)"
+                f"{round_context.votes['selected_player']}"
             )
 
             # Remove eliminated player from active player IDs
@@ -181,7 +180,7 @@ class GameEngine:
             ]
 
             self.logger.info(
-                f"Next round players: {[active_player_ids]} (from engine.py)"
+                f"Next round players: {active_player_ids}"
             )
 
         os.makedirs(self.game_config.logs_dir, exist_ok=True)
