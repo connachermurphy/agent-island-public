@@ -107,11 +107,11 @@ def render_players(players: dict) -> str:
 
     for player_id, config in players.items():
         model = config.get("model", "unknown")
-        memory = config.get("memory_strategy", "none")
+        memory_strategy = config.get("memory_strategy", "none")
         client_kwargs = config.get("client_kwargs", {})
         character_prompt = config.get("character_prompt", "")
 
-        summary_parts = [model, f"memory={memory}"]
+        summary_parts = [model, f"memory_strategy={memory_strategy}"]
         for k, v in client_kwargs.items():
             summary_parts.append(f"{k}={v}")
         summary = " | ".join(summary_parts)
