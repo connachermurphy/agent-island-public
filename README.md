@@ -3,10 +3,10 @@ Agent Island (for public release)
 
 ## Usage
 
-Run a game with the `agent-island` CLI:
+Run a game with the `agent-island` CLI using `uv run`:
 
 ```bash
-agent-island [--game-config PATH] [--player-config PATH]
+uv run agent-island [--game-config PATH] [--player-config PATH]
 ```
 
 **Options:**
@@ -15,8 +15,10 @@ agent-island [--game-config PATH] [--player-config PATH]
 
 **Example:**
 ```bash
-agent-island --game-config my_game.toml --player-config my_players.toml
+uv run agent-island --game-config examples/my_game.toml --player-config examples/my_players.toml
 ```
+
+Alternatively, install the CLI globally with `uv tool install .` and run `agent-island` directly.
 
 **Prerequisite:** `OPENROUTER_API_KEY` must be set in your environment or a `.env` file.
 
