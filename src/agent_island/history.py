@@ -133,14 +133,14 @@ class History:
 
         Args:
             round_index: The index of the round
-        heading: The heading of the event
-        role: The role of the event
-        prompt: The prompt provided to the player
-        content: The content of the event (player content or narrator message)
-        visibility: The visibility of the event content
-        active_visibility: Mutable version of visibility to track summarization
-        reasoning: The reasoning provided by the player
-        metadata: Parsed metadata about the response (if available)
+            heading: The heading of the event
+            role: The role of the event
+            prompt: The prompt provided to the player
+            content: The content of the event (player content or narrator message)
+            visibility: The visibility of the event content
+            active_visibility: Mutable version of visibility to track summarization
+            reasoning: The reasoning provided by the player
+            metadata: Parsed metadata about the response (if available)
 
         Returns:
             None
