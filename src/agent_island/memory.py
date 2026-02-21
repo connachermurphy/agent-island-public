@@ -127,6 +127,18 @@ Other players will not be able to see your summary."""
             }
         )
 
+        history.add_event(
+            round_index=round_index,
+            heading=f"Player {player_id}'s Memory Consolidation",
+            role=f"player {player_id}",
+            prompt=f"{system_prompt}\n\n{visible_text}",
+            content=response.text,
+            reasoning=response.reasoning,
+            metadata=response.metadata,
+            visibility=[player_id],
+            active_visibility=[],
+        )
+
         # Clear active_visibility on consumed events
         for event in visible_events:
             event.active_visibility.remove(player_id)
