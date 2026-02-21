@@ -97,12 +97,12 @@ def phase_votes(context: RoundContext) -> None:
 
     # The outcome for the vote depends on the round
     if context.final_round:
-        outcome = "win"
         outcome_verb = "wins"
+        vote_instruction = "Vote for one player to win."
         voters = context.eliminated_player_ids
     else:
-        outcome = "eliminate"
         outcome_verb = "is eliminated"
+        vote_instruction = "Vote to eliminate one player."
         voters = context.active_player_ids
 
     # Construct list of candidates for the vote
@@ -131,7 +131,7 @@ def phase_votes(context: RoundContext) -> None:
 
             {player.config.character_prompt}
 
-            Please vote for one player to {outcome}. You cannot vote for yourself.
+            {vote_instruction} You cannot vote for yourself.
 
             You must vote for one of the following players: {candidates_for_voter}.
 
