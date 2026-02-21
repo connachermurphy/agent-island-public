@@ -15,7 +15,7 @@ uv run agent-island [--game-config PATH] [--player-config PATH]
 
 **Example:**
 ```bash
-uv run agent-island --game-config examples/my_game.toml --player-config examples/my_players.toml
+uv run agent-island --game-config game_config.toml --player-config player_config.toml
 ```
 
 Alternatively, install the CLI globally with `uv tool install .` and run `agent-island` directly.
