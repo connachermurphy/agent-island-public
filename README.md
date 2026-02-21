@@ -1,6 +1,25 @@
 # agent-island-public
 Agent Island (for public release)
 
+## Usage
+
+Run a game with the `agent-island` CLI:
+
+```bash
+agent-island [--game-config PATH] [--player-config PATH]
+```
+
+**Options:**
+- `--game-config` — Path to a game config TOML file (default: `game_config.toml`)
+- `--player-config` — Path to a player config TOML file (default: `player_config.toml`)
+
+**Example:**
+```bash
+agent-island --game-config my_game.toml --player-config my_players.toml
+```
+
+**Prerequisite:** `OPENROUTER_API_KEY` must be set in your environment or a `.env` file.
+
 ## Development
 
 ### Linting
