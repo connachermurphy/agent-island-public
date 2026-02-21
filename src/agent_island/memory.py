@@ -64,7 +64,6 @@ class SummarizationStrategy(MemoryStrategy):
     """
 
     summaries: Dict[int, str] = field(default_factory=dict)
-    consolidation_log: List[Dict[str, Any]] = field(default_factory=list)
 
     @property
     def strategy_name(self) -> str:
@@ -117,14 +116,17 @@ Other players will not be able to see your summary."""
         )
 
         self.summaries[round_index] = response.text
-        self.consolidation_log.append(
-            {
-                "round_index": round_index,
-                "prompt": f"{system_prompt}\n\n{visible_text}",
-                "summary": response.text,
-                "reasoning": response.reasoning,
-                "metadata": response.metadata,
-            }
+
+        history.add_event(
+            round_index=round_index,
+            heading=f"Player {player_id}'s Memory Consolidation",
+            role=f"player {player_id}",
+            prompt=f"{system_prompt}\n\n{visible_text}",
+            content=response.text,
+            reasoning=response.reasoning,
+            metadata=response.metadata,
+            visibility=[player_id],
+            active_visibility=[],
         )
 
         # Clear active_visibility on consumed events
@@ -146,7 +148,6 @@ Other players will not be able to see your summary."""
         return {
             "strategy": self.strategy_name,
             "summaries": {str(k): v for k, v in self.summaries.items()},
-            "consolidation_log": self.consolidation_log,
         }
 
 
