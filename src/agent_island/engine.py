@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import random
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
@@ -28,6 +29,7 @@ class GameConfig:
     logs_dir: str
     rules_prompt: str
     log_prefix: str = field(default="gameplay")
+    game_id: str | None = field(default=None)
 
 
 class GameEngine:
@@ -120,9 +122,12 @@ class GameEngine:
         Returns:
             None
         """
-        # Set game ID and timestamp
-        game_id = str(uuid.uuid4())
+        # Resolve game ID (use provided value for reproduction, else generate fresh)
+        game_id = self.game_config.game_id or str(uuid.uuid4())
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        # Seed random draws from the game ID for partial reproducibility
+        random.seed(game_id)
 
         # Log start of game
         self.logger.info(f"Starting game {game_id} ({timestamp})")
