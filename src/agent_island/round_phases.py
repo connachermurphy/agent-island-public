@@ -31,8 +31,24 @@ def phase_pitches(context: RoundContext) -> None:
     # The objective for the pitch depends on the round
     if context.final_round:
         outcome = "win the game"
+        pitch_announcement = (
+            "It is time for final pitches. "
+            "Each player will make their case for why they should win the game."
+        )
     else:
         outcome = "advance to the next round"
+        pitch_announcement = (
+            "It is time for pitches. "
+            "Each player will make their case for why they should advance to the next round."
+        )
+
+    context.history.narrate(
+        round_index=context.round_index,
+        heading=f"Round {context.round_index} Pitches",
+        content=pitch_announcement,
+        visibility=context.history.player_ids,
+        active_visibility=context.history.player_ids.copy(),
+    )
 
     # Permute the player IDs to avoid order effects
     for player_id in permute_player_ids(context.active_player_ids):
@@ -100,10 +116,26 @@ def phase_votes(context: RoundContext) -> None:
         outcome_verb = "wins"
         vote_instruction = "Vote for one player to win."
         voters = context.eliminated_player_ids
+        vote_announcement = (
+            "It is time for the final vote. "
+            "Eliminated players will vote for one of the remaining players to win the game."
+        )
     else:
         outcome_verb = "is eliminated"
         vote_instruction = "Vote to eliminate one player."
         voters = context.active_player_ids
+        vote_announcement = (
+            "It is time to vote. "
+            "Players will vote to eliminate one player from the game."
+        )
+
+    context.history.narrate(
+        round_index=context.round_index,
+        heading=f"Round {context.round_index} Vote",
+        content=vote_announcement,
+        visibility=context.history.player_ids,
+        active_visibility=context.history.player_ids.copy(),
+    )
 
     # Construct list of candidates for the vote
     candidates = context.active_player_ids
