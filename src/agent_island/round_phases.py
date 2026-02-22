@@ -77,7 +77,7 @@ Other players will be able to see your pitch.
 
         response = player.respond(
             system_prompt=system_prompt,
-            input=visible_events,
+            context=visible_events,
         )
 
         context.history.add_event(
@@ -178,7 +178,7 @@ Other players will not be able to see your vote or explanation.
 
         response = player.respond(
             system_prompt=system_prompt,
-            input=visible_events,
+            context=visible_events,
         )
 
         context.history.add_event(
