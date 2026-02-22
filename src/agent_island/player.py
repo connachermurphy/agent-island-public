@@ -19,7 +19,8 @@ class PlayerConfig:
         provider: The provider of the player's client
         model: The model of the player's client
         api_key: The API key for the player's client
-        client_kwargs: The kwargs for the player's client (use Responses API param names)
+        client_kwargs: The kwargs for the player's client
+            (use Responses API param names)
     """
 
     player_id: str

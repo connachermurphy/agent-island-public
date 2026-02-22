@@ -39,7 +39,8 @@ def phase_pitches(context: RoundContext) -> None:
         outcome = "advance to the next round"
         pitch_announcement = (
             "It is time for pitches. "
-            "Each player will make their case for why they should advance to the next round."
+            "Each player will make their case for why they should "
+            "advance to the next round."
         )
 
     context.history.narrate(
@@ -113,7 +114,8 @@ def phase_votes(context: RoundContext) -> None:
         voters = context.eliminated_player_ids
         vote_announcement = (
             "It is time for the final vote. "
-            "Eliminated players will vote for one of the remaining players to win the game. "
+            "Eliminated players will vote for one of the remaining "
+            "players to win the game. "
             "Votes are private."
         )
     else:
