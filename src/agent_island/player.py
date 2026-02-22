@@ -20,6 +20,7 @@ class PlayerConfig:
         model: The model of the player's client
         api_key: The API key for the player's client
         client_kwargs: The kwargs for the player's client
+            (use Responses API param names)
     """
 
     player_id: str
@@ -46,25 +47,25 @@ class Player:
     def respond(
         self,
         system_prompt: str,
-        messages: list[dict],
+        context: str,
     ) -> LLMResponse:
         """
         Get an LLM response from the player
 
         Args:
-            system_prompt: The system prompt for the client
-            messages: The message history for the client
+            system_prompt: Instructions for the player (rules, character, task)
+            context: The game context the player is responding to
 
         Returns:
             The response from the client
         """
-        messages = [{"role": "system", "content": system_prompt}, *messages]
-        response = self.client.chat.send(
+        response = self.client.beta.responses.send(
             model=self.config.model,
-            messages=messages,
+            instructions=system_prompt,
+            input=context,
             **self.config.client_kwargs,
         )
-        return parse_openrouter_response(response, client=self.client)
+        return parse_openrouter_response(response)
 
     def extract_vote(self, content: str, valid_player_ids: list[str]) -> Optional[str]:
         """

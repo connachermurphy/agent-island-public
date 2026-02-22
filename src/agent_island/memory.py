@@ -112,7 +112,7 @@ Other players will not be able to see your summary."""
 
         response = player.respond(
             system_prompt=system_prompt,
-            messages=[{"role": "user", "content": visible_text}],
+            context=visible_text,
         )
 
         self.summaries[round_index] = response.text
@@ -136,7 +136,10 @@ Other players will not be able to see your summary."""
     def render(self) -> str:
         if not self.summaries:
             return ""
-        parts = ["<memory>"]
+        parts = [
+            "The following is a summary of your memory from previous rounds:",
+            "<memory>",
+        ]
         for round_idx in sorted(self.summaries.keys()):
             parts.append(f"Round {round_idx} Summary:")
             parts.append(self.summaries[round_idx])

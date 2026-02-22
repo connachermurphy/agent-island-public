@@ -83,12 +83,4 @@ class Round:
             self.context.logger.info(f"Starting {phase.__name__}")
             phase(self.context)
 
-        self.context.history.narrate(
-            round_index=self.context.round_index,
-            heading="Narrator",
-            content=f"Round {self.context.round_index} complete!",
-            visibility=all_player_ids,
-            active_visibility=all_player_ids.copy(),
-        )
-
         self.context.logger.info(f"Round {self.context.round_index} complete")

@@ -49,6 +49,8 @@ def main() -> None:
         phases=game_data["phases"],
         logs_dir=game_data.get("logs_dir", LOGS_DIR),
         rules_prompt=rules_prompt,
+        log_prefix=game_data.get("log_prefix", "gameplay"),
+        game_id=game_data.get("game_id"),
     )
 
     game = GameEngine(game_config=game_config, player_configs=player_configs)

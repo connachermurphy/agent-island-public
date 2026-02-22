@@ -1,4 +1,3 @@
-import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -10,97 +9,56 @@ class LLMResponse:
     metadata: dict[str, Any] | None = None
 
 
-def parse_openrouter_response(
-    raw: Any, client: Any = None, max_attempts: int = 3, retry_delay: float = 2.0
-) -> LLMResponse:
+def parse_openrouter_response(raw: Any) -> LLMResponse:
     if raw is None:
         return LLMResponse(text="", reasoning=None, metadata=None)
 
-    message = _extract_message(raw)
-    text = _as_str(_get_attr(message, ["content"])) if message is not None else None
-    reasoning = (
-        _as_str(_get_attr(message, ["reasoning"])) if message is not None else None
-    )
-    metadata = _extract_usage(raw) or {}
+    text = None
+    reasoning_parts: list[str] = []
 
-    generation_id = getattr(raw, "id", None)
-    if generation_id and client is not None:
-        delay = retry_delay
-        for attempt in range(max_attempts):
-            time.sleep(delay)
-            try:
-                gen = client.generations.get_generation(id=generation_id)
-                total_cost = getattr(gen.data, "total_cost", None)
-                if total_cost is not None:
-                    metadata["cost"] = total_cost
-                break
-            except Exception:
-                if attempt == max_attempts - 1:
-                    metadata["cost_retrieval_failed"] = True
-                delay *= 2
+    for item in getattr(raw, "output", []):
+        item_type = getattr(item, "type", None)
+        if item_type == "message" and text is None:
+            for c in getattr(item, "content", []):
+                t = getattr(c, "text", None)
+                if t:
+                    text = t
+                    break
+        elif item_type == "reasoning":
+            # Concatenate all reasoning blocks. In standard text generation there
+            # is only one, but interleaved tool use can produce multiple.
+            for c in getattr(item, "content", None) or []:
+                t = getattr(c, "text", None)
+                if t:
+                    reasoning_parts.append(t)
 
-    return LLMResponse(
-        text=text or "",
-        reasoning=reasoning,
-        metadata=metadata or None,
-    )
+    reasoning = "\n\n".join(reasoning_parts) if reasoning_parts else None
+    metadata = _extract_usage(raw) or None
 
-
-def _extract_message(raw: Any) -> Any | None:
-    choices = _get_attr(raw, ["choices"])
-    if isinstance(choices, list) and choices:
-        choice0 = choices[0]
-        if isinstance(choice0, dict):
-            return choice0.get("message")
-        return _get_attr(choice0, ["message"])
-    if isinstance(raw, dict):
-        choices = raw.get("choices")
-        if isinstance(choices, list) and choices:
-            choice0 = choices[0]
-            if isinstance(choice0, dict):
-                return choice0.get("message")
-    return None
+    return LLMResponse(text=text or "", reasoning=reasoning, metadata=metadata)
 
 
 def _extract_usage(raw: Any) -> dict[str, Any]:
-    """Extract token counts and cost from an OpenRouter response."""
-    usage = _get_attr(raw, ["usage"])
+    usage = getattr(raw, "usage", None)
     if usage is None:
         return {}
 
     result: dict[str, Any] = {}
+    result["input_tokens"] = _as_int(getattr(usage, "input_tokens", None))
+    result["completion_tokens"] = _as_int(getattr(usage, "output_tokens", None))
+    result["total_tokens"] = _as_int(getattr(usage, "total_tokens", None))
 
-    result["input_tokens"] = _as_int(_get_attr(usage, ["prompt_tokens"]))
-    result["completion_tokens"] = _as_int(_get_attr(usage, ["completion_tokens"]))
-    result["total_tokens"] = _as_int(_get_attr(usage, ["total_tokens"]))
-
-    ct_details = _get_attr(usage, ["completion_tokens_details"])
+    ct_details = getattr(usage, "output_tokens_details", None)
     if ct_details is not None:
         result["reasoning_tokens"] = _as_int(
-            _get_attr(ct_details, ["reasoning_tokens"])
+            getattr(ct_details, "reasoning_tokens", None)
         )
 
+    cost = getattr(usage, "cost", None)
+    if cost is not None:
+        result["cost"] = float(cost)
+
     return {k: v for k, v in result.items() if v is not None}
-
-
-def _get_attr(obj: Any, names: list[str]) -> Any | None:
-    if obj is None:
-        return None
-    for name in names:
-        if hasattr(obj, name):
-            return getattr(obj, name)
-        if isinstance(obj, dict) and name in obj:
-            return obj.get(name)
-    return None
-
-
-def _as_float(value: Any) -> float | None:
-    if value is None:
-        return None
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
 
 
 def _as_int(value: Any) -> int | None:
@@ -110,11 +68,3 @@ def _as_int(value: Any) -> int | None:
         return int(value)
     except (TypeError, ValueError):
         return None
-
-
-def _as_str(value: Any) -> str | None:
-    if value is None:
-        return None
-    if isinstance(value, str):
-        return value
-    return str(value)

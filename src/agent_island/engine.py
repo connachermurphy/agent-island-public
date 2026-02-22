@@ -1,7 +1,9 @@
 import json
 import logging
 import os
-from dataclasses import asdict, dataclass
+import random
+import uuid
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import List
 
@@ -20,11 +22,14 @@ class GameConfig:
         phases: Ordered list of phase names (must be keys in PHASE_REGISTRY)
         logs_dir: Directory to save logs
         rules_prompt: Prompt with the rules of the game
+        log_prefix: Optional prefix for log filenames (default: "gameplay")
     """
 
     phases: list[str]
     logs_dir: str
     rules_prompt: str
+    log_prefix: str = field(default="gameplay")
+    game_id: str | None = field(default=None)
 
 
 class GameEngine:
@@ -117,11 +122,15 @@ class GameEngine:
         Returns:
             None
         """
-        # Set timestamp (output filename)
+        # Resolve game ID (use provided value for reproduction, else generate fresh)
+        game_id = self.game_config.game_id or str(uuid.uuid4())
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
+        # Seed random draws from the game ID for partial reproducibility
+        random.seed(game_id)
+
         # Log start of game
-        self.logger.info(f"Starting game ({timestamp})")
+        self.logger.info(f"Starting game {game_id} ({timestamp})")
 
         num_players = len(self.players)
         self.logger.info(f"{num_players} players")
@@ -181,10 +190,18 @@ class GameEngine:
         os.makedirs(self.game_config.logs_dir, exist_ok=True)
 
         output_path = os.path.join(
-            self.game_config.logs_dir, f"gameplay_{timestamp}.json"
+            self.game_config.logs_dir,
+            f"{self.game_config.log_prefix}_{game_id}.json",
         )
         with open(output_path, "w") as f:
             output = {
+                "game": {
+                    "id": game_id,
+                    "timestamp": timestamp,
+                    "log_prefix": self.game_config.log_prefix,
+                    "phases": self.game_config.phases,
+                    "rules_prompt": self.game_config.rules_prompt,
+                },
                 "players": {
                     p.config.player_id: {
                         k: v for k, v in asdict(p.config).items() if k != "api_key"

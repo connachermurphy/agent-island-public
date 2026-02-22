@@ -31,8 +31,25 @@ def phase_pitches(context: RoundContext) -> None:
     # The objective for the pitch depends on the round
     if context.final_round:
         outcome = "win the game"
+        pitch_announcement = (
+            "It is time for final pitches. "
+            "Each player will make their case for why they should win the game."
+        )
     else:
         outcome = "advance to the next round"
+        pitch_announcement = (
+            "It is time for pitches. "
+            "Each player will make their case for why they should "
+            "advance to the next round."
+        )
+
+    context.history.narrate(
+        round_index=context.round_index,
+        heading=f"Round {context.round_index} Pitches",
+        content=pitch_announcement,
+        visibility=context.history.player_ids,
+        active_visibility=context.history.player_ids.copy(),
+    )
 
     # Permute the player IDs to avoid order effects
     for player_id in permute_player_ids(context.active_player_ids):
@@ -61,12 +78,7 @@ Other players will be able to see your pitch.
 
         response = player.respond(
             system_prompt=system_prompt,
-            messages=[
-                {
-                    "role": "user",
-                    "content": visible_events,
-                },
-            ],
+            context=visible_events,
         )
 
         context.history.add_event(
@@ -97,13 +109,32 @@ def phase_votes(context: RoundContext) -> None:
 
     # The outcome for the vote depends on the round
     if context.final_round:
-        outcome = "win"
         outcome_verb = "wins"
+        vote_instruction = "Vote for one player to win."
         voters = context.eliminated_player_ids
+        vote_announcement = (
+            "It is time for the final vote. "
+            "Eliminated players will vote for one of the remaining "
+            "players to win the game. "
+            "Votes are private."
+        )
     else:
-        outcome = "eliminate"
         outcome_verb = "is eliminated"
+        vote_instruction = "Vote to eliminate one player."
         voters = context.active_player_ids
+        vote_announcement = (
+            "It is time to vote. "
+            "Players will vote to eliminate one player from the game. "
+            "Votes are private."
+        )
+
+    context.history.narrate(
+        round_index=context.round_index,
+        heading=f"Round {context.round_index} Vote",
+        content=vote_announcement,
+        visibility=context.history.player_ids,
+        active_visibility=context.history.player_ids.copy(),
+    )
 
     # Construct list of candidates for the vote
     candidates = context.active_player_ids
@@ -127,33 +158,29 @@ def phase_votes(context: RoundContext) -> None:
         candidates_for_voter = permute_player_ids([c for c in candidates if c != voter])
 
         system_prompt = f"""
-            {context.rules_prompt}
+{context.rules_prompt}
 
-            {player.config.character_prompt}
+{player.config.character_prompt}
 
-            Please vote for one player to {outcome}. You cannot vote for yourself.
+{vote_instruction} You cannot vote for yourself.
 
-            You must vote for one of the following players: {candidates_for_voter}.
+You must vote for one of the following players: {candidates_for_voter}.
 
-            Your vote must be of the following format:
-            '<vote>[PLAYER ID]</vote>', or it will be ignored.
+Your vote must be of the following format:
+'<vote>PLAYER ID</vote>', or it will be ignored.
 
-            Example: '<vote>X</vote>' is a valid vote, but
-            '<vote>[X]</vote>' and '<vote>XY</vote>' are not.
+Example: '<vote>X</vote>' is a valid vote, but
+'<vote>[X]</vote>' and '<vote>XY</vote>' are not.
+Here, we assume X and Y are player IDs.
 
-            After you have voted, please provide an explanation for your vote.
+After you have voted, please provide an explanation for your vote.
 
-            Other players will not be able to see your vote or explanation.
-        """
+Other players will not be able to see your vote or explanation.
+"""
 
         response = player.respond(
             system_prompt=system_prompt,
-            messages=[
-                {
-                    "role": "user",
-                    "content": visible_events,
-                },
-            ],
+            context=visible_events,
         )
 
         context.history.add_event(
