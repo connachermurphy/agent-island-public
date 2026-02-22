@@ -46,14 +46,14 @@ class Player:
     def respond(
         self,
         system_prompt: str,
-        input: str,
+        context: str,
     ) -> LLMResponse:
         """
         Get an LLM response from the player
 
         Args:
             system_prompt: Instructions for the player (rules, character, task)
-            input: The game context the player is responding to
+            context: The game context the player is responding to
 
         Returns:
             The response from the client
@@ -61,7 +61,7 @@ class Player:
         response = self.client.beta.responses.send(
             model=self.config.model,
             instructions=system_prompt,
-            input=input,
+            input=context,
             **self.config.client_kwargs,
         )
         return parse_openrouter_response(response)
