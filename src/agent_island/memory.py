@@ -112,7 +112,7 @@ Other players will not be able to see your summary."""
 
         response = player.respond(
             system_prompt=system_prompt,
-            messages=[{"role": "user", "content": visible_text}],
+            input=visible_text,
         )
 
         self.summaries[round_index] = response.text

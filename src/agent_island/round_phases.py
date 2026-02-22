@@ -77,12 +77,7 @@ Other players will be able to see your pitch.
 
         response = player.respond(
             system_prompt=system_prompt,
-            messages=[
-                {
-                    "role": "user",
-                    "content": visible_events,
-                },
-            ],
+            input=visible_events,
         )
 
         context.history.add_event(
@@ -181,12 +176,7 @@ def phase_votes(context: RoundContext) -> None:
 
         response = player.respond(
             system_prompt=system_prompt,
-            messages=[
-                {
-                    "role": "user",
-                    "content": visible_events,
-                },
-            ],
+            input=visible_events,
         )
 
         context.history.add_event(
