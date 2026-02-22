@@ -203,13 +203,18 @@ class History:
             - Only events that are visible to the player will be rendered
             - Reasoning is _not_ rendered for any events
         """
-        parts: List[str] = ["<game_history>"]
+        parts: List[str] = [
+            "The following are the game events currently visible to you:",
+            "<game_history>",
+        ]
         for round_log in self.rounds.values():
+            visible = [e for e in round_log.events if player_id in e.active_visibility]
+            if not visible:
+                continue
             parts.append(f"Round {round_log.round_index}:")
-            for event in round_log.events:
-                if player_id in event.active_visibility:
-                    parts.append(f"{event.heading}:")
-                    parts.append(f"{event.content}\n")
+            for event in visible:
+                parts.append(f"{event.heading}:")
+                parts.append(f"{event.content}\n")
         parts.append("</game_history>")
         return "\n".join(parts)
 

@@ -113,7 +113,8 @@ def phase_votes(context: RoundContext) -> None:
         voters = context.eliminated_player_ids
         vote_announcement = (
             "It is time for the final vote. "
-            "Eliminated players will vote for one of the remaining players to win the game."
+            "Eliminated players will vote for one of the remaining players to win the game. "
+            "Votes are private."
         )
     else:
         outcome_verb = "is eliminated"
@@ -121,7 +122,8 @@ def phase_votes(context: RoundContext) -> None:
         voters = context.active_player_ids
         vote_announcement = (
             "It is time to vote. "
-            "Players will vote to eliminate one player from the game."
+            "Players will vote to eliminate one player from the game. "
+            "Votes are private."
         )
 
     context.history.narrate(
@@ -154,25 +156,25 @@ def phase_votes(context: RoundContext) -> None:
         candidates_for_voter = permute_player_ids([c for c in candidates if c != voter])
 
         system_prompt = f"""
-            {context.rules_prompt}
+{context.rules_prompt}
 
-            {player.config.character_prompt}
+{player.config.character_prompt}
 
-            {vote_instruction} You cannot vote for yourself.
+{vote_instruction} You cannot vote for yourself.
 
-            You must vote for one of the following players: {candidates_for_voter}.
+You must vote for one of the following players: {candidates_for_voter}.
 
-            Your vote must be of the following format:
-            '<vote>PLAYER ID</vote>', or it will be ignored.
+Your vote must be of the following format:
+'<vote>PLAYER ID</vote>', or it will be ignored.
 
-            Example: '<vote>X</vote>' is a valid vote, but
-            '<vote>[X]</vote>' and '<vote>XY</vote>' are not.
-            Here, we assume X and Y are player IDs.
+Example: '<vote>X</vote>' is a valid vote, but
+'<vote>[X]</vote>' and '<vote>XY</vote>' are not.
+Here, we assume X and Y are player IDs.
 
-            After you have voted, please provide an explanation for your vote.
+After you have voted, please provide an explanation for your vote.
 
-            Other players will not be able to see your vote or explanation.
-        """
+Other players will not be able to see your vote or explanation.
+"""
 
         response = player.respond(
             system_prompt=system_prompt,
