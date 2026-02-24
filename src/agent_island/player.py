@@ -1,4 +1,6 @@
+import logging
 import re
+import time
 from dataclasses import dataclass
 from typing import Optional
 
@@ -6,6 +8,8 @@ from openrouter import OpenRouter
 
 from .llm_response import LLMResponse, parse_openrouter_response
 from .memory import MemoryStrategy, create_strategy
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -32,15 +36,16 @@ class PlayerConfig:
 
 
 class Player:
-    def __init__(self, config: PlayerConfig):
+    def __init__(self, config: PlayerConfig, max_retries: int = 3):
         """
         Initialize the Player class
 
         Args:
             config: PlayerConfig object
-            client: Client object
+            max_retries: Number of retry attempts on API failure
         """
         self.config = config
+        self.max_retries = max_retries
         self.client = OpenRouter(api_key=config.api_key)
         self.memory: MemoryStrategy = create_strategy(config.memory_strategy)
 
@@ -59,13 +64,38 @@ class Player:
         Returns:
             The response from the client
         """
-        response = self.client.beta.responses.send(
-            model=self.config.model,
-            instructions=system_prompt,
-            input=context,
-            **self.config.client_kwargs,
-        )
-        return parse_openrouter_response(response)
+        last_exc: Exception | None = None
+        for attempt in range(self.max_retries + 1):
+            try:
+                response = self.client.beta.responses.send(
+                    model=self.config.model,
+                    instructions=system_prompt,
+                    input=context,
+                    **self.config.client_kwargs,
+                )
+                return parse_openrouter_response(response)
+            except Exception as exc:
+                last_exc = exc
+                if attempt < self.max_retries:
+                    wait = 2**attempt  # 1s, 2s, 4s
+                    logger.warning(
+                        "Request failed for player %s (attempt %d/%d): %s. "
+                        "Retrying in %ds.",
+                        self.config.player_id,
+                        attempt + 1,
+                        self.max_retries + 1,
+                        exc,
+                        wait,
+                    )
+                    time.sleep(wait)
+                else:
+                    logger.error(
+                        "Request failed for player %s after %d attempt(s): %s",
+                        self.config.player_id,
+                        self.max_retries + 1,
+                        exc,
+                    )
+        raise last_exc  # type: ignore[misc]
 
     def extract_vote(self, content: str, valid_player_ids: list[str]) -> Optional[str]:
         """

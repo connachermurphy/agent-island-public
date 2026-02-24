@@ -142,51 +142,66 @@ class GameEngine:
         # Start gameplay
         round_index = 0
 
-        # Rounds 1 to N - 2: standard elimination rounds
-        # Round N - 1: final round
-        while len(active_player_ids) > 1:
-            # Set round N - 1 to final round
-            if len(active_player_ids) == 2:
-                final_round = True
-                outcome = "Winning"
-            # Set rounds 1 to N - 2 to standard elimination rounds
-            else:
-                final_round = False
-                outcome = "Eliminated"
+        try:
+            # Rounds 1 to N - 2: standard elimination rounds
+            # Round N - 1: final round
+            while len(active_player_ids) > 1:
+                # Set round N - 1 to final round
+                if len(active_player_ids) == 2:
+                    final_round = True
+                    outcome = "Winning"
+                # Set rounds 1 to N - 2 to standard elimination rounds
+                else:
+                    final_round = False
+                    outcome = "Eliminated"
 
-            round_index += 1
-            self.logger.info(f"Round {round_index}")
+                round_index += 1
+                self.logger.info(f"Round {round_index}")
 
-            # Create pitch --> vote rounds and play
-            round_context = self._create_round_context(
-                round_index=round_index,
-                final_round=final_round,
-                players=self.players,
-                active_player_ids=active_player_ids,
-            )
-            round = Round(
-                context=round_context,
-                phases=self._phases,
-            )
-            round.play()
+                # Create pitch --> vote rounds and play
+                round_context = self._create_round_context(
+                    round_index=round_index,
+                    final_round=final_round,
+                    players=self.players,
+                    active_player_ids=active_player_ids,
+                )
+                round = Round(
+                    context=round_context,
+                    phases=self._phases,
+                )
+                round.play()
 
-            self.logger.info(f"Vote tally: {round_context.votes['vote_tally']}")
+                self.logger.info(f"Vote tally: {round_context.votes['vote_tally']}")
 
-            self.logger.info(
-                f"{outcome} player: {round_context.votes['selected_player']}"
-            )
+                self.logger.info(
+                    f"{outcome} player: {round_context.votes['selected_player']}"
+                )
 
-            # Remove eliminated player from active player IDs
-            # active_player_ids is used in subsequent rounds,
-            # so the update after the final vote is irrelevant
-            active_player_ids = [
-                pid
-                for pid in active_player_ids
-                if pid != round_context.votes["selected_player"]
-            ]
+                # Remove eliminated player from active player IDs
+                # active_player_ids is used in subsequent rounds,
+                # so the update after the final vote is irrelevant
+                active_player_ids = [
+                    pid
+                    for pid in active_player_ids
+                    if pid != round_context.votes["selected_player"]
+                ]
 
-            self.logger.info(f"Next round players: {active_player_ids}")
+                self.logger.info(f"Next round players: {active_player_ids}")
 
+        except Exception as exc:
+            self.logger.error("Game %s failed: %s", game_id, exc)
+            self._write_log(game_id, timestamp, status="failed", error=str(exc))
+            raise
+
+        self._write_log(game_id, timestamp, status="completed", error=None)
+
+    def _write_log(
+        self,
+        game_id: str,
+        timestamp: str,
+        status: str,
+        error: str | None,
+    ) -> None:
         os.makedirs(self.game_config.logs_dir, exist_ok=True)
 
         output_path = os.path.join(
@@ -201,6 +216,8 @@ class GameEngine:
                     "log_prefix": self.game_config.log_prefix,
                     "phases": self.game_config.phases,
                     "rules_prompt": self.game_config.rules_prompt,
+                    "status": status,
+                    "error": error,
                 },
                 "players": {
                     p.config.player_id: {
