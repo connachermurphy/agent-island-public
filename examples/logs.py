@@ -133,7 +133,6 @@ def render_players(players: dict) -> str:
     return "\n".join(parts)
 
 
-
 def render_stats_table(
     col_headers: list[str],
     rows: list[tuple[str, list[str]]],
@@ -216,7 +215,6 @@ def build_outputs(
             stats.get("reasoning_extraction_failures", {}).get("by_player", {}).keys()
         )
     player_ids = sorted(player_id_set)
-    row_labels = player_ids + ["Total"]
 
     if stats:
         vpf = stats.get("vote_parse_failures", {})
@@ -242,7 +240,8 @@ def build_outputs(
         ]
         note = (
             "Non-reasoning models always have extraction failures; "
-            "some reasoning models also do not expose their reasoning output via the API "
+            "some reasoning models also do not expose "
+            "their reasoning output via the API "
             "(e.g., OpenAI o1)."
         )
 
