@@ -195,6 +195,85 @@ class GameEngine:
 
         self._write_log(game_id, timestamp, status="completed", error=None)
 
+    def _compute_stats(self) -> dict:
+        """
+        Compute game statistics from the event history.
+
+        All metrics are derived post-hoc from event data:
+          - vote_parse_failures: events flagged with metadata["vote_parse_failed"]
+          - reasoning_extraction_failures: non-narrator events with reasoning=None
+          - cost: sum of metadata["cost"] per player
+          - usage: token counts and cost_retrieval_failures per player
+
+        Returns:
+            dict with vote_parse_failures, reasoning_extraction_failures, cost, usage
+        """
+        vpf_by_player: dict[str, int] = {}
+        ref_by_player: dict[str, int] = {}
+        cost_by_player: dict[str, float] = {}
+        usage_by_player: dict[str, dict[str, int]] = {}
+
+        for round_log in self.history.rounds.values():
+            for event in round_log.events:
+                if event.role == "narrator":
+                    continue
+                player_id = event.role.removeprefix("player ")
+                meta = event.metadata or {}
+
+                if meta.get("vote_parse_failed"):
+                    vpf_by_player[player_id] = vpf_by_player.get(player_id, 0) + 1
+
+                if event.reasoning is None:
+                    ref_by_player[player_id] = ref_by_player.get(player_id, 0) + 1
+
+                if "cost" in meta:
+                    cost_by_player[player_id] = (
+                        cost_by_player.get(player_id, 0.0) + meta["cost"]
+                    )
+
+                pu = usage_by_player.setdefault(
+                    player_id,
+                    {
+                        "input_tokens": 0,
+                        "completion_tokens": 0,
+                        "reasoning_tokens": 0,
+                        "total_tokens": 0,
+                        "cost_retrieval_failures": 0,
+                    },
+                )
+                pu["input_tokens"] += meta.get("input_tokens", 0)
+                pu["completion_tokens"] += meta.get("completion_tokens", 0)
+                pu["reasoning_tokens"] += meta.get("reasoning_tokens", 0)
+                pu["total_tokens"] += meta.get("total_tokens", 0)
+                if meta.get("cost_retrieval_failed"):
+                    pu["cost_retrieval_failures"] += 1
+
+        def _sum(key: str) -> int:
+            return sum(p.get(key, 0) for p in usage_by_player.values())
+
+        return {
+            "vote_parse_failures": {
+                "total": sum(vpf_by_player.values()),
+                "by_player": vpf_by_player,
+            },
+            "reasoning_extraction_failures": {
+                "total": sum(ref_by_player.values()),
+                "by_player": ref_by_player,
+            },
+            "cost": {
+                "total": sum(cost_by_player.values()),
+                "by_player": cost_by_player,
+            },
+            "usage": {
+                "by_player": usage_by_player,
+                "input_tokens": _sum("input_tokens"),
+                "completion_tokens": _sum("completion_tokens"),
+                "reasoning_tokens": _sum("reasoning_tokens"),
+                "total_tokens": _sum("total_tokens"),
+                "cost_retrieval_failures": _sum("cost_retrieval_failures"),
+            },
+        }
+
     def _write_log(
         self,
         game_id: str,
@@ -225,6 +304,7 @@ class GameEngine:
                     }
                     for p in self.players
                 },
+                "stats": self._compute_stats(),
                 "history": self.history.to_dict(),
             }
             json.dump(output, f, indent=2)

@@ -133,9 +133,44 @@ def render_players(players: dict) -> str:
     return "\n".join(parts)
 
 
+
+def render_stats_table(
+    col_headers: list[str],
+    rows: list[tuple[str, list[str]]],
+    note: str | None = None,
+) -> str:
+    """
+    Render a stats table with a metric label column and value columns.
+    The last row is assumed to be a "Total" summary row.
+    """
+    parts = ['  <table class="stats-table">']
+    parts.append("    <thead>")
+    parts.append("      <tr>")
+    parts.append('        <th class="metric-col"></th>')
+    for h in col_headers:
+        parts.append(f"        <th>{html.escape(h)}</th>")
+    parts.append("      </tr>")
+    parts.append("    </thead>")
+    parts.append("    <tbody>")
+    for i, (label, values) in enumerate(rows):
+        is_total = i == len(rows) - 1
+        row_cls = ' class="total-row"' if is_total else ""
+        parts.append(f"      <tr{row_cls}>")
+        parts.append(f'        <td class="metric-label">{html.escape(label)}</td>')
+        for v in values:
+            parts.append(f"        <td>{html.escape(v)}</td>")
+        parts.append("      </tr>")
+    parts.append("    </tbody>")
+    parts.append("  </table>")
+    if note:
+        parts.append(f'  <p class="stats-note">{html.escape(note)}</p>')
+    return "\n".join(parts)
+
+
 def build_outputs(
     game_history: dict,
     players: dict | None = None,
+    stats: dict | None = None,
     include_prompt: bool = False,
     include_reasoning: bool = False,
     include_usage: bool = False,
@@ -148,13 +183,6 @@ def build_outputs(
     players_html = render_players(players or {})
     if players_html:
         body_parts.append(players_html)
-
-    total_cost = 0.0
-    total_input = 0
-    total_completion = 0
-    total_reasoning = 0
-    total_tokens = 0
-    cost_retrieval_failures = 0
 
     for round_index, round_log in game_history.items():
         active_ids = round_log.get("active_player_ids", [])
@@ -171,30 +199,104 @@ def build_outputs(
                 render_html_event(event, include_prompt, include_reasoning)
             )
 
-            meta = event.get("metadata") or {}
-            total_cost += meta.get("cost", 0)
-            total_input += meta.get("input_tokens", 0)
-            total_completion += meta.get("completion_tokens", 0)
-            total_reasoning += meta.get("reasoning_tokens", 0)
-            total_tokens += meta.get("total_tokens", 0)
-            if meta.get("cost_retrieval_failed"):
-                cost_retrieval_failures += 1
+        body_parts.append("</section>")
 
+    # Derive ordered player IDs from all available sources
+    usage = (stats or {}).get("usage", {})
+    usage_by_player = usage.get("by_player", {})
+
+    player_id_set: set[str] = set(list((players or {}).keys()))
+    player_id_set |= set(usage_by_player.keys())
+    if stats:
+        player_id_set |= set(stats.get("cost", {}).get("by_player", {}).keys())
+        player_id_set |= set(
+            stats.get("vote_parse_failures", {}).get("by_player", {}).keys()
+        )
+        player_id_set |= set(
+            stats.get("reasoning_extraction_failures", {}).get("by_player", {}).keys()
+        )
+    player_ids = sorted(player_id_set)
+    row_labels = player_ids + ["Total"]
+
+    if stats:
+        vpf = stats.get("vote_parse_failures", {})
+        ref = stats.get("reasoning_extraction_failures", {})
+        vpf_by_player = vpf.get("by_player", {})
+        ref_by_player = ref.get("by_player", {})
+
+        col_headers = ["Vote parse failures", "Reasoning extraction failures"]
+        rows: list[tuple[str, list[str]]] = [
+            (
+                pid,
+                [
+                    str(vpf_by_player.get(pid, 0)),
+                    str(ref_by_player.get(pid, 0)),
+                ],
+            )
+            for pid in player_ids
+        ] + [
+            (
+                "Total",
+                [str(vpf.get("total", 0)), str(ref.get("total", 0))],
+            )
+        ]
+        note = (
+            "Non-reasoning models always have extraction failures; "
+            "some reasoning models also do not expose their reasoning output via the API "
+            "(e.g., OpenAI o1)."
+        )
+
+        body_parts.append('<section class="game-stats">')
+        body_parts.append("  <h2>Game Stats</h2>")
+        body_parts.append(render_stats_table(col_headers, rows, note))
         body_parts.append("</section>")
 
     if include_usage:
+        cost_stats = (stats or {}).get("cost", {})
+        cost_by_player = cost_stats.get("by_player", {})
+        total_cost = cost_stats.get("total", 0.0)
+
+        def tok(pid: str, key: str) -> int:
+            return usage_by_player.get(pid, {}).get(key, 0)
+
+        usage_col_headers = [
+            "Cost (USD)",
+            "Input tokens",
+            "Completion tokens",
+            "Reasoning tokens",
+            "Total tokens",
+            "Cost retrieval failures",
+        ]
+        usage_rows: list[tuple[str, list[str]]] = [
+            (
+                pid,
+                [
+                    f"${cost_by_player.get(pid, 0.0):.4f}",
+                    f"{tok(pid, 'input_tokens'):,}",
+                    f"{tok(pid, 'completion_tokens'):,}",
+                    f"{tok(pid, 'reasoning_tokens'):,}",
+                    f"{tok(pid, 'total_tokens'):,}",
+                    str(tok(pid, "cost_retrieval_failures")),
+                ],
+            )
+            for pid in player_ids
+        ] + [
+            (
+                "Total",
+                [
+                    f"${total_cost:.4f}",
+                    f"{usage.get('input_tokens', 0):,}",
+                    f"{usage.get('completion_tokens', 0):,}",
+                    f"{usage.get('reasoning_tokens', 0):,}",
+                    f"{usage.get('total_tokens', 0):,}",
+                    str(usage.get("cost_retrieval_failures", 0)),
+                ],
+            )
+        ]
+
         body_parts.append('<section class="usage-summary">')
         body_parts.append("  <h2>Usage Summary</h2>")
-        body_parts.append("  <ul>")
-        body_parts.append(f"    <li>Cost (USD): ${total_cost:.4f}</li>")
-        body_parts.append(f"    <li>Input tokens: {total_input:,}</li>")
-        body_parts.append(f"    <li>Completion tokens: {total_completion:,}</li>")
-        body_parts.append(f"    <li>Reasoning tokens: {total_reasoning:,}</li>")
-        body_parts.append(f"    <li>Total tokens: {total_tokens:,}</li>")
-        body_parts.append(
-            f"    <li>Cost retrieval failures: {cost_retrieval_failures}</li>"
-        )
-        body_parts.append("  </ul>")
+        body_parts.append(render_stats_table(usage_col_headers, usage_rows))
         body_parts.append("</section>")
 
     body = "\n".join(body_parts)
@@ -227,6 +329,7 @@ if __name__ == "__main__":
     html_content = build_outputs(
         game_history["history"],
         players=game_history.get("players", {}),
+        stats=game_history.get("stats", {}),
         include_prompt=args.include_prompts,
         include_reasoning=args.include_reasoning,
         include_usage=args.include_usage,

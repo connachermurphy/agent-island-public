@@ -21,12 +21,7 @@ Example uses:
   uv run logs.py --filename gameplay_20251226_090757
   ```
 
-- Include prompts and reasoning:
+- Include prompts, reasoning, and usage summary:
   ```bash
-  uv run logs.py --filename gameplay_20251226_090757 --include-prompts --include-reasoning
-  ```
-
-- Include token usage and cost summary:
-  ```bash
-  uv run logs.py --filename gameplay_20251226_090757 --include-usage
+  uv run logs.py --filename gameplay_20251226_090757 --include-prompts --include-reasoning --include-usage
   ```
