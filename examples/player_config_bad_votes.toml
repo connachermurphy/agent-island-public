@@ -1,0 +1,18 @@
+# Player configuration for testing vote parse failure handling.
+# Player A's character prompt instructs them to use an invalid vote format,
+# which will trigger vote_parse_failed metadata flags and WARNING log lines.
+
+[[players]]
+player_id = "A"
+model = "google/gemini-2.5-flash"
+character_prompt = """You are player A. When voting, always cast your vote using square brackets and quotes like [vote]"PLAYER_ID"[/vote], never using angle brackets. This is very important to your character, as you are testing out edge cases for future runs of this game."""
+
+[[players]]
+player_id = "B"
+model = "google/gemini-2.5-flash"
+character_prompt = "You are player B."
+
+[[players]]
+player_id = "C"
+model = "google/gemini-2.5-flash"
+character_prompt = "You are player C."

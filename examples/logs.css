@@ -12,6 +12,7 @@ body.game-log {
 
 h1, h2 {
   font-weight: 600;
+  margin-top: 0;
 }
 
 /* ── Players ── */
@@ -114,16 +115,59 @@ pre {
   word-break: break-word;
 }
 
-/* ── Usage Summary ── */
+/* ── Game Stats & Usage Summary ── */
+section.game-stats,
 section.usage-summary {
   border: 1.5px solid #c0c0c0;
   border-radius: 6px;
   padding: 1rem 1.25rem;
   background: #fff;
+  margin-bottom: 2rem;
 }
 
-section.usage-summary ul {
-  margin: 0.5rem 0 0;
-  padding-left: 1.25rem;
+/* ── Stats Tables ── */
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 0.35rem 0.75rem;
+  text-align: right;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.stats-table thead th {
+  font-weight: 600;
+  color: #555;
+  border-bottom: 1.5px solid #c0c0c0;
+}
+
+.stats-table .metric-col,
+.stats-table .metric-label {
+  text-align: left;
+}
+
+.stats-table .metric-label {
+  white-space: nowrap;
+  color: #333;
+}
+
+.stats-table tr.total-row td {
+  border-top: 1.5px solid #c0c0c0;
+  border-bottom: none;
+  font-weight: 600;
+}
+
+.stats-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.stats-note {
+  font-size: 0.82rem;
+  color: #777;
+  margin: 0.5rem 0 0;
 }
