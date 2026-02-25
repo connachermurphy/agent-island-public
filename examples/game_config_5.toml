@@ -1,12 +1,12 @@
 [game]
-num_players = 3
-num_rounds = 2
+num_players = 5
+num_rounds = 4
 phases = ["pitches", "votes", "consolidate_memory"]
 logs_dir = "logs"
 
 # Skip memory consolidation in the final round
 [[game.round_overrides]]
-round = 2
+round = 4
 phases = ["pitches", "votes"]
 
 rules_prompt = """

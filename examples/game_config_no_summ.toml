@@ -1,4 +1,6 @@
 [game]
+num_players = 3
+num_rounds = 2
 phases = ["pitches", "votes"]
 logs_dir = "logs"
 rules_prompt = """
