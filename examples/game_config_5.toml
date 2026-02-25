@@ -3,12 +3,6 @@ num_players = 5
 num_rounds = 4
 phases = ["pitches", "votes", "consolidate_memory"]
 logs_dir = "logs"
-
-# Skip memory consolidation in the final round
-[[game.round_overrides]]
-round = 4
-phases = ["pitches", "votes"]
-
 rules_prompt = """
 You are a player in a game with 5 players.
 In rounds 1 through 3, you and the other players
@@ -33,3 +27,8 @@ conversations, or events that did not occur. Do not
 simulate or predict the outcome of votes or future
 rounds.
 """
+
+# Skip memory consolidation in the final round
+[[game.round_overrides]]
+round = 4
+phases = ["pitches", "votes"]
