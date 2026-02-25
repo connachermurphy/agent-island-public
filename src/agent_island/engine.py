@@ -200,33 +200,25 @@ class GameEngine:
         # Log start of game
         self.logger.info(f"Starting game {game_id} ({timestamp})")
 
-        num_players = len(self.players)
-        self.logger.info(f"{num_players} players")
+        self.logger.info(f"{self.game_config.num_players} players")
 
         # Store original set of player IDs in game history
         active_player_ids = [player.config.player_id for player in self.players]
         self.history.player_ids = active_player_ids
 
-        # Start gameplay
-        round_index = 0
+        num_rounds = self.game_config.num_rounds
 
         try:
-            # Rounds 1 to N - 2: standard elimination rounds
-            # Round N - 1: final round
-            while len(active_player_ids) > 1:
-                # Set round N - 1 to final round
-                if len(active_player_ids) == 2:
-                    final_round = True
-                    outcome = "Winning"
-                # Set rounds 1 to N - 2 to standard elimination rounds
-                else:
-                    final_round = False
-                    outcome = "Eliminated"
+            for round_index in range(1, num_rounds + 1):
+                final_round = round_index == num_rounds
+                outcome = "Winning" if final_round else "Eliminated"
 
-                round_index += 1
                 self.logger.info(f"Round {round_index}")
 
-                # Create pitch --> vote rounds and play
+                # Resolve phases for this round (override or default)
+                phases = self._get_phases_for_round(round_index)
+
+                # Create round context and play
                 round_context = self._create_round_context(
                     round_index=round_index,
                     final_round=final_round,
@@ -235,7 +227,7 @@ class GameEngine:
                 )
                 round = Round(
                     context=round_context,
-                    phases=self._phases,
+                    phases=phases,
                 )
                 round.play()
 
@@ -246,15 +238,13 @@ class GameEngine:
                 )
 
                 # Remove eliminated player from active player IDs
-                # active_player_ids is used in subsequent rounds,
-                # so the update after the final vote is irrelevant
-                active_player_ids = [
-                    pid
-                    for pid in active_player_ids
-                    if pid != round_context.votes["selected_player"]
-                ]
-
-                self.logger.info(f"Next round players: {active_player_ids}")
+                if not final_round:
+                    active_player_ids = [
+                        pid
+                        for pid in active_player_ids
+                        if pid != round_context.votes["selected_player"]
+                    ]
+                    self.logger.info(f"Next round players: {active_player_ids}")
 
         except Exception as exc:
             self.logger.error("Game %s failed: %s", game_id, exc)
@@ -360,8 +350,14 @@ class GameEngine:
                 "game": {
                     "id": game_id,
                     "timestamp": timestamp,
+                    "num_players": self.game_config.num_players,
+                    "num_rounds": self.game_config.num_rounds,
                     "log_prefix": self.game_config.log_prefix,
                     "phases": self.game_config.phases,
+                    "round_phase_overrides": {
+                        str(k): v
+                        for k, v in self.game_config.round_phase_overrides.items()
+                    },
                     "rules_prompt": self.game_config.rules_prompt,
                     "status": status,
                     "error": error,
