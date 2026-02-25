@@ -5,7 +5,7 @@ import random
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import List
+from typing import Callable, List
 
 from .history import History
 from .player import Player, PlayerConfig
@@ -101,7 +101,7 @@ class GameEngine:
                         f"Valid phases: {list(PHASE_REGISTRY.keys())}"
                     )
 
-    def _get_phases_for_round(self, round_index: int) -> List[callable]:
+    def _get_phases_for_round(self, round_index: int) -> List[Callable]:
         """
         Get the phase callables for a given round.
 
