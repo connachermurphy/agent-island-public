@@ -19,15 +19,22 @@ class GameConfig:
     Configuration for the game
 
     Args:
-        phases: Ordered list of phase names (must be keys in PHASE_REGISTRY)
+        num_players: Expected number of players (validated against player configs)
+        num_rounds: Number of rounds to play (final round determined by index)
+        phases: Default ordered list of phase names (must be keys in PHASE_REGISTRY)
         logs_dir: Directory to save logs
         rules_prompt: Prompt with the rules of the game
+        round_phase_overrides: Per-round phase overrides, keyed by 1-indexed round number
         log_prefix: Optional prefix for log filenames (default: "gameplay")
+        game_id: Optional game ID for reproducibility
     """
 
+    num_players: int
+    num_rounds: int
     phases: list[str]
     logs_dir: str
     rules_prompt: str
+    round_phase_overrides: dict[int, list[str]] = field(default_factory=dict)
     log_prefix: str = field(default="gameplay")
     game_id: str | None = field(default=None)
 
@@ -48,9 +55,70 @@ class GameEngine:
         self.game_config = game_config
         self.player_configs = player_configs
         self.logger = logging.getLogger(__name__)
+        self._validate_config()
         self.players = self._initialize_players()
         self.history = History()
-        self._phases = [PHASE_REGISTRY[name] for name in game_config.phases]
+
+    def _validate_config(self) -> None:
+        """Validate game config against player configs and phase registry."""
+        cfg = self.game_config
+
+        if cfg.num_players != len(self.player_configs):
+            raise ValueError(
+                f"num_players ({cfg.num_players}) does not match "
+                f"player config count ({len(self.player_configs)})"
+            )
+
+        if cfg.num_rounds < 1:
+            raise ValueError(f"num_rounds must be >= 1, got {cfg.num_rounds}")
+
+        # TODO: Relax this constraint when non-elimination rounds are added
+        if cfg.num_rounds > cfg.num_players - 1:
+            raise ValueError(
+                f"num_rounds ({cfg.num_rounds}) must be <= num_players - 1 "
+                f"({cfg.num_players - 1})"
+            )
+
+        # Validate default phase names
+        for name in cfg.phases:
+            if name not in PHASE_REGISTRY:
+                raise ValueError(
+                    f"Unknown phase '{name}' in default phases. "
+                    f"Valid phases: {list(PHASE_REGISTRY.keys())}"
+                )
+
+        # Validate round overrides
+        for round_idx, phase_names in cfg.round_phase_overrides.items():
+            if round_idx < 1 or round_idx > cfg.num_rounds:
+                raise ValueError(
+                    f"Round override index {round_idx} is out of range "
+                    f"[1, {cfg.num_rounds}]"
+                )
+            for name in phase_names:
+                if name not in PHASE_REGISTRY:
+                    raise ValueError(
+                        f"Unknown phase '{name}' in override for round {round_idx}. "
+                        f"Valid phases: {list(PHASE_REGISTRY.keys())}"
+                    )
+
+    def _get_phases_for_round(
+        self, round_index: int
+    ) -> List[callable]:
+        """
+        Get the phase callables for a given round.
+
+        Uses round-specific overrides if configured, otherwise the default phases.
+
+        Args:
+            round_index: 1-indexed round number
+
+        Returns:
+            List of phase callables
+        """
+        phase_names = self.game_config.round_phase_overrides.get(
+            round_index, self.game_config.phases
+        )
+        return [PHASE_REGISTRY[name] for name in phase_names]
 
     def _initialize_players(self) -> List[Player]:
         """
