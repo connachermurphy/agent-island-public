@@ -101,9 +101,7 @@ class GameEngine:
                         f"Valid phases: {list(PHASE_REGISTRY.keys())}"
                     )
 
-    def _get_phases_for_round(
-        self, round_index: int
-    ) -> List[callable]:
+    def _get_phases_for_round(self, round_index: int) -> List[callable]:
         """
         Get the phase callables for a given round.
 
