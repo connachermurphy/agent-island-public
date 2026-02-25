@@ -24,7 +24,7 @@ class GameConfig:
         phases: Default ordered list of phase names (must be keys in PHASE_REGISTRY)
         logs_dir: Directory to save logs
         rules_prompt: Prompt with the rules of the game
-        round_phase_overrides: Per-round phase overrides, keyed by 1-indexed round number
+        round_phase_overrides: Per-round phase overrides keyed by round number
         log_prefix: Optional prefix for log filenames (default: "gameplay")
         game_id: Optional game ID for reproducibility
     """
