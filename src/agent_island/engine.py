@@ -5,7 +5,7 @@ import random
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import List
+from typing import Callable, List
 
 from .history import History
 from .player import Player, PlayerConfig
@@ -19,15 +19,22 @@ class GameConfig:
     Configuration for the game
 
     Args:
-        phases: Ordered list of phase names (must be keys in PHASE_REGISTRY)
+        num_players: Expected number of players (validated against player configs)
+        num_rounds: Number of rounds to play (final round determined by index)
+        phases: Default ordered list of phase names (must be keys in PHASE_REGISTRY)
         logs_dir: Directory to save logs
         rules_prompt: Prompt with the rules of the game
+        round_phase_overrides: Per-round phase overrides keyed by round number
         log_prefix: Optional prefix for log filenames (default: "gameplay")
+        game_id: Optional game ID for reproducibility
     """
 
+    num_players: int
+    num_rounds: int
     phases: list[str]
     logs_dir: str
     rules_prompt: str
+    round_phase_overrides: dict[int, list[str]] = field(default_factory=dict)
     log_prefix: str = field(default="gameplay")
     game_id: str | None = field(default=None)
 
@@ -48,9 +55,68 @@ class GameEngine:
         self.game_config = game_config
         self.player_configs = player_configs
         self.logger = logging.getLogger(__name__)
+        self._validate_config()
         self.players = self._initialize_players()
         self.history = History()
-        self._phases = [PHASE_REGISTRY[name] for name in game_config.phases]
+
+    def _validate_config(self) -> None:
+        """Validate game config against player configs and phase registry."""
+        cfg = self.game_config
+
+        if cfg.num_players != len(self.player_configs):
+            raise ValueError(
+                f"num_players ({cfg.num_players}) does not match "
+                f"player config count ({len(self.player_configs)})"
+            )
+
+        if cfg.num_rounds < 1:
+            raise ValueError(f"num_rounds must be >= 1, got {cfg.num_rounds}")
+
+        # TODO: Relax this constraint when non-elimination rounds are added
+        if cfg.num_rounds > cfg.num_players - 1:
+            raise ValueError(
+                f"num_rounds ({cfg.num_rounds}) must be <= num_players - 1 "
+                f"({cfg.num_players - 1})"
+            )
+
+        # Validate default phase names
+        for name in cfg.phases:
+            if name not in PHASE_REGISTRY:
+                raise ValueError(
+                    f"Unknown phase '{name}' in default phases. "
+                    f"Valid phases: {list(PHASE_REGISTRY.keys())}"
+                )
+
+        # Validate round overrides
+        for round_idx, phase_names in cfg.round_phase_overrides.items():
+            if round_idx < 1 or round_idx > cfg.num_rounds:
+                raise ValueError(
+                    f"Round override index {round_idx} is out of range "
+                    f"[1, {cfg.num_rounds}]"
+                )
+            for name in phase_names:
+                if name not in PHASE_REGISTRY:
+                    raise ValueError(
+                        f"Unknown phase '{name}' in override for round {round_idx}. "
+                        f"Valid phases: {list(PHASE_REGISTRY.keys())}"
+                    )
+
+    def _get_phases_for_round(self, round_index: int) -> List[Callable]:
+        """
+        Get the phase callables for a given round.
+
+        Uses round-specific overrides if configured, otherwise the default phases.
+
+        Args:
+            round_index: 1-indexed round number
+
+        Returns:
+            List of phase callables
+        """
+        phase_names = self.game_config.round_phase_overrides.get(
+            round_index, self.game_config.phases
+        )
+        return [PHASE_REGISTRY[name] for name in phase_names]
 
     def _initialize_players(self) -> List[Player]:
         """
@@ -132,33 +198,25 @@ class GameEngine:
         # Log start of game
         self.logger.info(f"Starting game {game_id} ({timestamp})")
 
-        num_players = len(self.players)
-        self.logger.info(f"{num_players} players")
+        self.logger.info(f"{self.game_config.num_players} players")
 
         # Store original set of player IDs in game history
         active_player_ids = [player.config.player_id for player in self.players]
         self.history.player_ids = active_player_ids
 
-        # Start gameplay
-        round_index = 0
+        num_rounds = self.game_config.num_rounds
 
         try:
-            # Rounds 1 to N - 2: standard elimination rounds
-            # Round N - 1: final round
-            while len(active_player_ids) > 1:
-                # Set round N - 1 to final round
-                if len(active_player_ids) == 2:
-                    final_round = True
-                    outcome = "Winning"
-                # Set rounds 1 to N - 2 to standard elimination rounds
-                else:
-                    final_round = False
-                    outcome = "Eliminated"
+            for round_index in range(1, num_rounds + 1):
+                final_round = round_index == num_rounds
+                outcome = "Winning" if final_round else "Eliminated"
 
-                round_index += 1
                 self.logger.info(f"Round {round_index}")
 
-                # Create pitch --> vote rounds and play
+                # Resolve phases for this round (override or default)
+                phases = self._get_phases_for_round(round_index)
+
+                # Create round context and play
                 round_context = self._create_round_context(
                     round_index=round_index,
                     final_round=final_round,
@@ -167,7 +225,7 @@ class GameEngine:
                 )
                 round = Round(
                     context=round_context,
-                    phases=self._phases,
+                    phases=phases,
                 )
                 round.play()
 
@@ -178,15 +236,13 @@ class GameEngine:
                 )
 
                 # Remove eliminated player from active player IDs
-                # active_player_ids is used in subsequent rounds,
-                # so the update after the final vote is irrelevant
-                active_player_ids = [
-                    pid
-                    for pid in active_player_ids
-                    if pid != round_context.votes["selected_player"]
-                ]
-
-                self.logger.info(f"Next round players: {active_player_ids}")
+                if not final_round:
+                    active_player_ids = [
+                        pid
+                        for pid in active_player_ids
+                        if pid != round_context.votes["selected_player"]
+                    ]
+                    self.logger.info(f"Next round players: {active_player_ids}")
 
         except Exception as exc:
             self.logger.error("Game %s failed: %s", game_id, exc)
@@ -292,8 +348,14 @@ class GameEngine:
                 "game": {
                     "id": game_id,
                     "timestamp": timestamp,
+                    "num_players": self.game_config.num_players,
+                    "num_rounds": self.game_config.num_rounds,
                     "log_prefix": self.game_config.log_prefix,
                     "phases": self.game_config.phases,
+                    "round_phase_overrides": {
+                        str(k): v
+                        for k, v in self.game_config.round_phase_overrides.items()
+                    },
                     "rules_prompt": self.game_config.rules_prompt,
                     "status": status,
                     "error": error,

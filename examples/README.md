@@ -23,5 +23,5 @@ Example uses:
 
 - Include prompts, reasoning, and usage summary:
   ```bash
-  uv run logs.py --filename gameplay_20251226_090757 --include-prompts --include-reasoning --include-usage
+  uv run logs.py --include-prompts --include-reasoning --include-usage --filename gameplay_202521226_090757
   ```

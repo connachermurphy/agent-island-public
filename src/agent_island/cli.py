@@ -37,18 +37,14 @@ def main() -> None:
 
     game_data = load_game_config_from_toml(args.game_config)
     player_configs = load_player_configs_from_toml(args.player_config, api_key=api_key)
-    num_players = len(player_configs)
-
-    rules_prompt = game_data["rules_prompt"].format(
-        num_players=num_players,
-        elimination_rounds=num_players - 2,
-        final_round_number=num_players - 1,
-    )
 
     game_config = GameConfig(
+        num_players=game_data["num_players"],
+        num_rounds=game_data["num_rounds"],
         phases=game_data["phases"],
         logs_dir=game_data.get("logs_dir", LOGS_DIR),
-        rules_prompt=rules_prompt,
+        rules_prompt=game_data["rules_prompt"],
+        round_phase_overrides=game_data.get("round_phase_overrides", {}),
         log_prefix=game_data.get("log_prefix", "gameplay"),
         game_id=game_data.get("game_id"),
     )
