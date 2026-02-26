@@ -1,7 +1,7 @@
 from .engine import GameConfig, GameEngine
 from .loaders import load_game_config_from_toml, load_player_configs_from_toml
+from .phases import PHASE_REGISTRY
 from .player import PlayerConfig
-from .round_phases import PHASE_REGISTRY
 
 __all__ = [
     "GameConfig",
