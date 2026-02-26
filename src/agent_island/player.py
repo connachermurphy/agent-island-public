@@ -73,7 +73,12 @@ class Player:
                     input=context,
                     **self.config.client_kwargs,
                 )
-                return parse_openrouter_response(response)
+                result = parse_openrouter_response(response)
+                if attempt > 0:
+                    meta = dict(result.metadata) if result.metadata else {}
+                    meta["retries"] = attempt
+                    result.metadata = meta
+                return result
             except Exception as exc:
                 last_exc = exc
                 if attempt < self.max_retries:
