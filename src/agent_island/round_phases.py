@@ -194,6 +194,7 @@ Other players will not be able to see your vote or explanation.
             )
 
         metadata = dict(response.metadata) if response.metadata else {}
+        metadata["vote"] = vote
         if vote is None:
             metadata["vote_parse_failed"] = True
 
@@ -214,6 +215,12 @@ Other players will not be able to see your vote or explanation.
     context.votes["vote_tally"] = vote_tally
     context.logger.info(f"Final vote tally: {vote_tally}")
 
+    # Build tally string sorted by descending vote count, including 0-vote candidates
+    tally_str = ", ".join(
+        f"{p}: {vote_tally.get(p, 0)}"
+        for p in sorted(candidates, key=lambda p: -vote_tally.get(p, 0))
+    )
+
     # Find selected player
     if not vote_tally:
         # If no valid votes, randomly select a player
@@ -228,6 +235,7 @@ Other players will not be able to see your vote or explanation.
                 f"No valid votes found, so we are randomly "
                 f"selecting a player. Player "
                 f"{selected_player_id} {outcome_verb}."
+                f" Vote tally: {tally_str}."
             ),
             visibility=context.history.player_ids,
             active_visibility=context.history.player_ids.copy(),
@@ -250,6 +258,7 @@ Other players will not be able to see your vote or explanation.
                     f"Player {selected_player_id} "
                     f"{outcome_verb} with "
                     f"{max_votes} vote(s)."
+                    f" Vote tally: {tally_str}."
                 ),
                 visibility=context.history.player_ids,
                 active_visibility=context.history.player_ids.copy(),
@@ -274,10 +283,15 @@ Other players will not be able to see your vote or explanation.
                     f"randomly selecting one player. "
                     f"Player {selected_player_id} "
                     f"{outcome_verb}."
+                    f" Vote tally: {tally_str}."
                 ),
                 visibility=context.history.player_ids,
                 active_visibility=context.history.player_ids.copy(),
             )
+
+    # Persist vote results to the round log
+    context.history.rounds[context.round_index].vote_tally = vote_tally
+    context.history.rounds[context.round_index].selected_player = selected_player_id
 
     context.votes["selected_player"] = selected_player_id
 

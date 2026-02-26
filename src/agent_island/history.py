@@ -58,6 +58,8 @@ class RoundLog:
     active_player_ids: List[str]
     eliminated_player_ids: List[str]
     events: List[Event] = field(default_factory=list)
+    vote_tally: Dict[str, int] | None = None
+    selected_player: str | None = None
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -74,6 +76,8 @@ class RoundLog:
             "final_round": self.final_round,
             "active_player_ids": self.active_player_ids,
             "eliminated_player_ids": self.eliminated_player_ids,
+            "vote_tally": self.vote_tally,
+            "selected_player": self.selected_player,
             "events": [event.to_dict() for event in self.events],
         }
 
