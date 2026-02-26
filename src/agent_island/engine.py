@@ -10,7 +10,7 @@ from typing import Callable, List
 from .history import History
 from .player import Player, PlayerConfig
 from .round import Round, RoundContext
-from .round_phases import PHASE_REGISTRY
+from .phases import PHASE_REGISTRY
 
 
 @dataclass
