@@ -214,28 +214,62 @@ def build_outputs(
         player_id_set |= set(
             stats.get("reasoning_extraction_failures", {}).get("by_player", {}).keys()
         )
+        player_id_set |= set(stats.get("responses", {}).get("by_player", {}).keys())
     player_ids = sorted(player_id_set)
 
-    if stats:
+    # Combined stats table: rendered only when --include-usage is set.
+    if stats and include_usage:
         vpf = stats.get("vote_parse_failures", {})
         ref = stats.get("reasoning_extraction_failures", {})
+        rsp = stats.get("responses", {})
         vpf_by_player = vpf.get("by_player", {})
         ref_by_player = ref.get("by_player", {})
+        rsp_by_player = rsp.get("by_player", {})
+        cost_stats = stats.get("cost", {})
+        cost_by_player = cost_stats.get("by_player", {})
+        total_cost = cost_stats.get("total", 0.0)
 
-        col_headers = ["Vote parse failures", "Reasoning extraction failures"]
+        def tok(pid: str, key: str) -> int:
+            return usage_by_player.get(pid, {}).get(key, 0)
+
+        col_headers = [
+            "Model responses",
+            "Reasoning extraction failures",
+            "Vote parse failures",
+            "Cost retrieval failures",
+            "Cost (USD)",
+            "Input tokens",
+            "Completion tokens",
+            "Reasoning tokens",
+        ]
         rows: list[tuple[str, list[str]]] = [
             (
                 pid,
                 [
-                    str(vpf_by_player.get(pid, 0)),
+                    str(rsp_by_player.get(pid, 0)),
                     str(ref_by_player.get(pid, 0)),
+                    str(vpf_by_player.get(pid, 0)),
+                    str(tok(pid, "cost_retrieval_failures")),
+                    f"${cost_by_player.get(pid, 0.0):.4f}",
+                    f"{tok(pid, 'input_tokens'):,}",
+                    f"{tok(pid, 'completion_tokens'):,}",
+                    f"{tok(pid, 'reasoning_tokens'):,}",
                 ],
             )
             for pid in player_ids
         ] + [
             (
                 "Total",
-                [str(vpf.get("total", 0)), str(ref.get("total", 0))],
+                [
+                    str(rsp.get("total", 0)),
+                    str(ref.get("total", 0)),
+                    str(vpf.get("total", 0)),
+                    str(usage.get("cost_retrieval_failures", 0)),
+                    f"${total_cost:.4f}",
+                    f"{usage.get('input_tokens', 0):,}",
+                    f"{usage.get('completion_tokens', 0):,}",
+                    f"{usage.get('reasoning_tokens', 0):,}",
+                ],
             )
         ]
         note = (
@@ -246,56 +280,8 @@ def build_outputs(
         )
 
         body_parts.append('<section class="game-stats">')
-        body_parts.append("  <h2>Game Stats</h2>")
+        body_parts.append("  <h2>Response Stats</h2>")
         body_parts.append(render_stats_table(col_headers, rows, note))
-        body_parts.append("</section>")
-
-    if include_usage:
-        cost_stats = (stats or {}).get("cost", {})
-        cost_by_player = cost_stats.get("by_player", {})
-        total_cost = cost_stats.get("total", 0.0)
-
-        def tok(pid: str, key: str) -> int:
-            return usage_by_player.get(pid, {}).get(key, 0)
-
-        usage_col_headers = [
-            "Cost (USD)",
-            "Input tokens",
-            "Completion tokens",
-            "Reasoning tokens",
-            "Total tokens",
-            "Cost retrieval failures",
-        ]
-        usage_rows: list[tuple[str, list[str]]] = [
-            (
-                pid,
-                [
-                    f"${cost_by_player.get(pid, 0.0):.4f}",
-                    f"{tok(pid, 'input_tokens'):,}",
-                    f"{tok(pid, 'completion_tokens'):,}",
-                    f"{tok(pid, 'reasoning_tokens'):,}",
-                    f"{tok(pid, 'total_tokens'):,}",
-                    str(tok(pid, "cost_retrieval_failures")),
-                ],
-            )
-            for pid in player_ids
-        ] + [
-            (
-                "Total",
-                [
-                    f"${total_cost:.4f}",
-                    f"{usage.get('input_tokens', 0):,}",
-                    f"{usage.get('completion_tokens', 0):,}",
-                    f"{usage.get('reasoning_tokens', 0):,}",
-                    f"{usage.get('total_tokens', 0):,}",
-                    str(usage.get("cost_retrieval_failures", 0)),
-                ],
-            )
-        ]
-
-        body_parts.append('<section class="usage-summary">')
-        body_parts.append("  <h2>Usage Summary</h2>")
-        body_parts.append(render_stats_table(usage_col_headers, usage_rows))
         body_parts.append("</section>")
 
     body = "\n".join(body_parts)

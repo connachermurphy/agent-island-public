@@ -258,14 +258,17 @@ class GameEngine:
         All metrics are derived post-hoc from event data:
           - vote_parse_failures: events flagged with metadata["vote_parse_failed"]
           - reasoning_extraction_failures: non-narrator events with reasoning=None
+          - responses: number of non-narrator model responses per player
           - cost: sum of metadata["cost"] per player
           - usage: token counts and cost_retrieval_failures per player
 
         Returns:
-            dict with vote_parse_failures, reasoning_extraction_failures, cost, usage
+            dict with vote_parse_failures, reasoning_extraction_failures,
+            responses, cost, usage
         """
         vpf_by_player: dict[str, int] = {}
         ref_by_player: dict[str, int] = {}
+        responses_by_player: dict[str, int] = {}
         cost_by_player: dict[str, float] = {}
         usage_by_player: dict[str, dict[str, int]] = {}
 
@@ -275,6 +278,9 @@ class GameEngine:
                     continue
                 player_id = event.role.removeprefix("player ")
                 meta = event.metadata or {}
+                responses_by_player[player_id] = (
+                    responses_by_player.get(player_id, 0) + 1
+                )
 
                 if meta.get("vote_parse_failed"):
                     vpf_by_player[player_id] = vpf_by_player.get(player_id, 0) + 1
@@ -315,6 +321,10 @@ class GameEngine:
             "reasoning_extraction_failures": {
                 "total": sum(ref_by_player.values()),
                 "by_player": ref_by_player,
+            },
+            "responses": {
+                "total": sum(responses_by_player.values()),
+                "by_player": responses_by_player,
             },
             "cost": {
                 "total": sum(cost_by_player.values()),
