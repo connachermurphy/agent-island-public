@@ -77,5 +77,3 @@ Other players will be able to see your pitch.
             visibility=context.history.player_ids,
             active_visibility=context.history.player_ids.copy(),
         )
-
-

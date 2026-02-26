@@ -204,5 +204,3 @@ Other players will not be able to see your vote or explanation.
     context.history.rounds[context.round_index].selected_player = selected_player_id
 
     context.votes["selected_player"] = selected_player_id
-
-

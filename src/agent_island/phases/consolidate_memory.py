@@ -30,5 +30,3 @@ def phase_consolidate_memory(context: RoundContext) -> None:
             round_index=context.round_index,
             rules_prompt=context.rules_prompt,
         )
-
-
