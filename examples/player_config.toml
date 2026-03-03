@@ -1,6 +1,14 @@
 # Player configuration (TOML)
 # Secrets stay in your environment (.env). Set OPENROUTER_API_KEY
 # to the environment variable that holds your API key.
+#
+# To add a human player, use player_type = "human" and omit model.
+# Example:
+#
+# [[players]]
+# player_id = "H"
+# character_prompt = "You are a human player."
+# player_type = "human"
 
 [[players]]
 player_id = "C"

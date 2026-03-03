@@ -6,11 +6,34 @@ import pathlib
 import dotenv
 
 from .engine import GameConfig, GameEngine
-from .loaders import load_game_config_from_toml, load_player_configs_from_toml
+from .loaders import create_players, load_game_config_from_toml, load_player_configs_from_toml
 
 LOGS_DIR = "logs"
 
 dotenv.load_dotenv()
+
+
+class CLIFreeCollector:
+    def collect(self, system_prompt: str, context: str) -> str:
+        print(context)
+        return input("Your response: ")
+
+
+class CLIChoiceCollector:
+    def collect(
+        self, system_prompt: str, context: str, options: list[str]
+    ) -> tuple[str, str]:
+        print(context)
+        for i, opt in enumerate(options):
+            print(f"  {i + 1}. {opt}")
+        while True:
+            raw = input("Your choice (number): ").strip()
+            if raw.isdigit() and 1 <= int(raw) <= len(options):
+                selected = options[int(raw) - 1]
+                break
+            print(f"Please enter a number between 1 and {len(options)}.")
+        text = input("Explanation: ")
+        return selected, text
 
 
 def main() -> None:
@@ -31,12 +54,15 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENROUTER_API_KEY is required but not set.")
+    api_key = os.getenv("OPENROUTER_API_KEY", "")
 
     game_data = load_game_config_from_toml(args.game_config)
     player_configs = load_player_configs_from_toml(args.player_config, api_key=api_key)
+
+    if any(c.player_type == "ai" for c in player_configs) and not api_key:
+        raise RuntimeError("OPENROUTER_API_KEY is required for AI players but not set.")
+
+    players = create_players(player_configs, CLIFreeCollector(), CLIChoiceCollector())
 
     game_config = GameConfig(
         num_players=game_data["num_players"],
@@ -49,5 +75,5 @@ def main() -> None:
         game_id=game_data.get("game_id"),
     )
 
-    game = GameEngine(game_config=game_config, player_configs=player_configs)
+    game = GameEngine(game_config=game_config, players=players)
     game.play()
