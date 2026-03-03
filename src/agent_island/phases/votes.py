@@ -88,25 +88,21 @@ After you have voted, please provide an explanation for your vote.
 Other players will not be able to see your vote or explanation.
 """
 
-        response = player.respond(
+        response = player.choice_response(
             system_prompt=system_prompt,
             context=visible_events,
+            options=candidates_for_voter,
         )
 
-        # Extract the vote before adding the event so we can flag parse failures
-        # in metadata, keeping all stats derivable from event data
-        vote = player.extract_vote(response.text, candidates_for_voter)
-        if vote:
-            vote_tally[vote] = vote_tally.get(vote, 0) + 1
+        if response.selected:
+            vote_tally[response.selected] = vote_tally.get(response.selected, 0) + 1
         else:
             context.logger.warning(
                 "Vote parsing failed for player %s", player.config.player_id
             )
 
         metadata = dict(response.metadata) if response.metadata else {}
-        metadata["vote"] = vote
-        if vote is None:
-            metadata["vote_parse_failed"] = True
+        metadata["vote"] = response.selected
 
         context.history.add_event(
             round_index=context.round_index,
@@ -120,7 +116,7 @@ Other players will not be able to see your vote or explanation.
             active_visibility=[player.config.player_id],
         )
 
-        context.logger.info(f"Player {player.config.player_id} voted for {vote}")
+        context.logger.info(f"Player {player.config.player_id} voted for {response.selected}")
 
     context.votes["vote_tally"] = vote_tally
     context.logger.info(f"Final vote tally: {vote_tally}")
