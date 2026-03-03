@@ -9,7 +9,7 @@ from typing import Callable, List
 
 from .history import History
 from .phases import PHASE_REGISTRY
-from .player import Player, PlayerConfig
+from .player import Player
 from .round import Round, RoundContext
 
 
