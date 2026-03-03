@@ -9,7 +9,7 @@ from typing import Callable, List
 
 from .history import History
 from .phases import PHASE_REGISTRY
-from .player import AIPlayer, Player, PlayerConfig
+from .player import Player, PlayerConfig
 from .round import Round, RoundContext
 
 
@@ -43,30 +43,29 @@ class GameEngine:
     def __init__(
         self,
         game_config: GameConfig,
-        player_configs: list[PlayerConfig],
+        players: list[Player],
     ):
         """
         Initialize the GameEngine
 
         Args:
             game_config: GameConfig object
-            player_configs: List of PlayerConfig objects
+            players: List of fully-constructed Player objects
         """
         self.game_config = game_config
-        self.player_configs = player_configs
+        self.players = players
         self.logger = logging.getLogger(__name__)
         self._validate_config()
-        self.players = self._initialize_players()
         self.history = History()
 
     def _validate_config(self) -> None:
         """Validate game config against player configs and phase registry."""
         cfg = self.game_config
 
-        if cfg.num_players != len(self.player_configs):
+        if cfg.num_players != len(self.players):
             raise ValueError(
                 f"num_players ({cfg.num_players}) does not match "
-                f"player config count ({len(self.player_configs)})"
+                f"player count ({len(self.players)})"
             )
 
         if cfg.num_rounds < 1:
@@ -117,26 +116,6 @@ class GameEngine:
             round_index, self.game_config.phases
         )
         return [PHASE_REGISTRY[name] for name in phase_names]
-
-    def _initialize_players(self) -> List[Player]:
-        """
-        Initialize the players (Player class) from the player configurations
-
-        Args:
-            None
-
-        Returns:
-            List[Player]: List of Player objects
-        """
-        # Initialize an empty list of players
-        players: List[Player] = []
-
-        # Initialize the players from the player configurations
-        for player_config in self.player_configs:
-            player = AIPlayer(player_config)
-            players.append(player)
-
-        return players
 
     def _create_round_context(
         self,
