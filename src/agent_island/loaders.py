@@ -1,7 +1,14 @@
 import pathlib
 import tomllib
 
-from .player import PlayerConfig
+from .player import (
+    AIPlayer,
+    ChoiceCollector,
+    FreeCollector,
+    HumanPlayer,
+    Player,
+    PlayerConfig,
+)
 
 
 def load_game_config_from_toml(config_path: pathlib.Path) -> dict:
@@ -34,10 +41,25 @@ def load_player_configs_from_toml(
         PlayerConfig(
             player_id=p["player_id"],
             character_prompt=p["character_prompt"],
-            model=p["model"],
-            api_key=api_key,
+            model=p.get("model", ""),
+            api_key=api_key if p.get("player_type", "ai") == "ai" else "",
             client_kwargs=p.get("client_kwargs", {}),
             memory_strategy=p.get("memory_strategy", "none"),
+            player_type=p.get("player_type", "ai"),
         )
         for p in players
     ]
+
+
+def create_players(
+    player_configs: list[PlayerConfig],
+    free_collector: FreeCollector,
+    choice_collector: ChoiceCollector,
+) -> list[Player]:
+    players: list[Player] = []
+    for config in player_configs:
+        if config.player_type == "human":
+            players.append(HumanPlayer(config, free_collector, choice_collector))
+        else:
+            players.append(AIPlayer(config))
+    return players
