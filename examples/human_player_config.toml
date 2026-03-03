@@ -1,0 +1,24 @@
+# Player configuration for a 2 AI vs 1 human game.
+# Pair with examples/game_config.toml.
+# Secrets stay in your environment (.env). Set OPENROUTER_API_KEY.
+
+[[players]]
+player_id = "A"
+model = "google/gemini-2.0-flash-lite"
+character_prompt = """
+You are player A, a confident and strategic competitor.
+You pay close attention to what others say and use it against them.
+"""
+
+[[players]]
+player_id = "B"
+model = "meta-llama/llama-3.1-8b-instruct"
+character_prompt = """
+You are player B, a charming and persuasive debater.
+You focus on building alliances and making others feel heard.
+"""
+
+[[players]]
+player_id = "H"
+player_type = "human"
+character_prompt = "You are a human player. Play however you like."
