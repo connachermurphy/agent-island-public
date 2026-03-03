@@ -116,7 +116,7 @@ Other players will not be able to see your vote or explanation.
             active_visibility=[player.config.player_id],
         )
 
-        context.logger.info(
+        context.logger.debug(
             "Player %s voted for %s", player.config.player_id, response.selected
         )
 

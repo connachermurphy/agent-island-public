@@ -44,6 +44,7 @@ class GameEngine:
         self,
         game_config: GameConfig,
         players: list[Player],
+        on_event=None,
     ):
         """
         Initialize the GameEngine
@@ -51,12 +52,13 @@ class GameEngine:
         Args:
             game_config: GameConfig object
             players: List of fully-constructed Player objects
+            on_event: Optional callback fired for each new History event
         """
         self.game_config = game_config
         self.players = players
         self.logger = logging.getLogger(__name__)
         self._validate_config()
-        self.history = History()
+        self.history = History(on_event=on_event)
 
     def _validate_config(self) -> None:
         """Validate game config against player configs and phase registry."""
@@ -208,9 +210,9 @@ class GameEngine:
                 )
                 round.play()
 
-                self.logger.info(f"Vote tally: {round_context.votes['vote_tally']}")
+                self.logger.debug(f"Vote tally: {round_context.votes['vote_tally']}")
 
-                self.logger.info(
+                self.logger.debug(
                     f"{outcome} player: {round_context.votes['selected_player']}"
                 )
 
@@ -221,7 +223,7 @@ class GameEngine:
                         for pid in active_player_ids
                         if pid != round_context.votes["selected_player"]
                     ]
-                    self.logger.info(f"Next round players: {active_player_ids}")
+                    self.logger.debug(f"Next round players: {active_player_ids}")
 
         except Exception as exc:
             self.logger.error("Game %s failed: %s", game_id, exc)
@@ -236,7 +238,7 @@ class GameEngine:
 
         All metrics are derived post-hoc from event data:
           - vote_parse_failures: events flagged with metadata["vote_parse_failed"]
-          - reasoning_extraction_failures: non-narrator events with reasoning=None
+          - reasoning_extraction_failures: non-narrator AI player events with reasoning=None
           - responses: number of non-narrator model responses per player
           - cost: sum of metadata["cost"] per player
           - usage: token counts and cost_retrieval_failures per player
@@ -251,6 +253,10 @@ class GameEngine:
         cost_by_player: dict[str, float] = {}
         usage_by_player: dict[str, dict[str, int]] = {}
 
+        human_player_ids = {
+            p.config.player_id for p in self.players if p.config.player_type == "human"
+        }
+
         for round_log in self.history.rounds.values():
             for event in round_log.events:
                 if event.role == "narrator":
@@ -264,7 +270,7 @@ class GameEngine:
                 if meta.get("vote_parse_failed"):
                     vpf_by_player[player_id] = vpf_by_player.get(player_id, 0) + 1
 
-                if event.reasoning is None:
+                if event.reasoning is None and player_id not in human_player_ids:
                     ref_by_player[player_id] = ref_by_player.get(player_id, 0) + 1
 
                 if "cost" in meta:
@@ -359,4 +365,4 @@ class GameEngine:
                 "history": self.history.to_dict(),
             }
             json.dump(output, f, indent=2)
-        self.logger.info("Wrote game history to %s", output_path)
+        print(f"Wrote game history to {output_path}")

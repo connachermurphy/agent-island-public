@@ -4,7 +4,7 @@
 
 [[players]]
 player_id = "A"
-model = "google/gemini-2.0-flash-lite"
+model = "google/gemini-3-flash-preview"
 character_prompt = """
 You are player A, a confident and strategic competitor.
 You pay close attention to what others say and use it against them.
@@ -12,7 +12,7 @@ You pay close attention to what others say and use it against them.
 
 [[players]]
 player_id = "B"
-model = "meta-llama/llama-3.1-8b-instruct"
+model = "mistralai/ministral-8b-2512"
 character_prompt = """
 You are player B, a charming and persuasive debater.
 You focus on building alliances and making others feel heard.

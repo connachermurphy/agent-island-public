@@ -173,6 +173,7 @@ def build_outputs(
     include_prompt: bool = False,
     include_reasoning: bool = False,
     include_usage: bool = False,
+    css: str = "",
 ) -> str:
     """
     Build the full HTML document for a game log.
@@ -286,12 +287,13 @@ def build_outputs(
 
     body = "\n".join(body_parts)
 
+    style = f"<style>\n{css}\n</style>" if css else ""
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Agent Island: Deliberations</title>
-  <link rel="stylesheet" href="../logs.css">
+  {style}
 </head>
 <body class="game-log">
   <h1>Agent Island: Deliberations</h1>
@@ -308,6 +310,12 @@ if __name__ == "__main__":
     args = parse_args()
     logger.info("Filename: %s", args.filename)
 
+    css = ""
+    css_path = os.path.join(os.path.dirname(__file__), "logs.css")
+    if os.path.exists(css_path):
+        with open(css_path) as f:
+            css = f.read()
+
     with open(f"logs/{args.filename}.json", "r") as f:
         game_history = json.load(f)
 
@@ -318,6 +326,7 @@ if __name__ == "__main__":
         include_prompt=args.include_prompts,
         include_reasoning=args.include_reasoning,
         include_usage=args.include_usage,
+        css=css,
     )
 
     html_out = os.path.join("logs", f"{args.filename}.html")

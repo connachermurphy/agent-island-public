@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 
 
 @dataclass
@@ -83,14 +83,9 @@ class RoundLog:
 
 
 class History:
-    def __init__(self) -> None:
-        """
-        Initialize the history
-
-        Args:
-            None
-        """
+    def __init__(self, on_event: Callable[[Event], None] | None = None) -> None:
         self.rounds: Dict[int, RoundLog] = {}
+        self.on_event = on_event
 
     def start_round(
         self,
@@ -149,18 +144,19 @@ class History:
         Returns:
             None
         """
-        self.rounds[round_index].events.append(
-            Event(
-                heading=heading,
-                role=role,
-                prompt=prompt,
-                content=content,
-                visibility=visibility,
-                active_visibility=active_visibility,
-                reasoning=reasoning,
-                metadata=metadata,
-            )
+        event = Event(
+            heading=heading,
+            role=role,
+            prompt=prompt,
+            content=content,
+            visibility=visibility,
+            active_visibility=active_visibility,
+            reasoning=reasoning,
+            metadata=metadata,
         )
+        self.rounds[round_index].events.append(event)
+        if self.on_event:
+            self.on_event(event)
 
     def narrate(
         self,

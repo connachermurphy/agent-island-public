@@ -6,6 +6,7 @@ import pathlib
 import dotenv
 
 from .engine import GameConfig, GameEngine
+from .history import Event
 from .loaders import (
     create_players,
     load_game_config_from_toml,
@@ -19,15 +20,14 @@ dotenv.load_dotenv()
 
 class CLIFreeCollector:
     def collect(self, system_prompt: str, context: str) -> str:
-        print(context)
-        return input("Your response: ")
+        return input("\nYour response: ")
 
 
 class CLIChoiceCollector:
     def collect(
         self, system_prompt: str, context: str, options: list[str]
     ) -> tuple[str, str]:
-        print(context)
+        print()
         for i, opt in enumerate(options):
             print(f"  {i + 1}. {opt}")
         while True:
@@ -79,5 +79,19 @@ def main() -> None:
         game_id=game_data.get("game_id"),
     )
 
-    game = GameEngine(game_config=game_config, players=players)
+    human_ids = {p.config.player_id for p in players if p.config.player_type == "human"}
+
+    on_event = None
+    if human_ids:
+        # Suppress INFO noise; game events stream to stdout via on_event instead
+        logging.getLogger().setLevel(logging.WARNING)
+
+        def on_event(event: Event) -> None:
+            if any(pid in event.visibility for pid in human_ids):
+                content = event.content
+                if event.metadata and event.metadata.get("vote"):
+                    content = f"Vote: {event.metadata['vote']}\n{content}"
+                print(f"\n{event.heading}:\n{content}")
+
+    game = GameEngine(game_config=game_config, players=players, on_event=on_event)
     game.play()
