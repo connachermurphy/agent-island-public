@@ -2,8 +2,8 @@ import logging
 import re
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, Protocol
 
 from openrouter import OpenRouter
 
@@ -16,24 +16,18 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PlayerConfig:
     """
-    Configuration for a player
+    Configuration for a player.
 
-    Args:
-        player_id: The ID of the player
-        character_prompt: The prompt for the player's character
-        provider: The provider of the player's client
-        model: The model of the player's client
-        api_key: The API key for the player's client
-        client_kwargs: The kwargs for the player's client
-            (use Responses API param names)
+    AI players require model and api_key. Human players can omit them.
     """
 
     player_id: str
     character_prompt: str
-    model: str
-    api_key: str
-    client_kwargs: dict
+    model: str = ""
+    api_key: str = ""
+    client_kwargs: dict = field(default_factory=dict)
     memory_strategy: str = "none"
+    player_type: str = "ai"
 
 
 @dataclass
@@ -51,6 +45,18 @@ class ChoiceResponse:
     metadata: dict | None = None
 
 
+class FreeCollector(Protocol):
+    def collect(self, system_prompt: str, context: str) -> str: ...
+
+
+class ChoiceCollector(Protocol):
+    def collect(
+        self, system_prompt: str, context: str, options: list[str]
+    ) -> tuple[str, str]:
+        # returns (selected, text)
+        ...
+
+
 class Player(ABC):
     config: PlayerConfig
     memory: MemoryStrategy
@@ -66,13 +72,6 @@ class Player(ABC):
 
 class AIPlayer(Player):
     def __init__(self, config: PlayerConfig, max_retries: int = 3):
-        """
-        Initialize the AIPlayer class
-
-        Args:
-            config: PlayerConfig object
-            max_retries: Number of retry attempts on API failure
-        """
         self.config = config
         self.max_retries = max_retries
         self.client = OpenRouter(api_key=config.api_key)
@@ -151,3 +150,30 @@ class AIPlayer(Player):
             if vote in valid_player_ids and vote != self.config.player_id:
                 return vote
         return None
+
+
+class HumanPlayer(Player):
+    def __init__(
+        self, config: PlayerConfig, free: FreeCollector, choice: ChoiceCollector
+    ):
+        if config.memory_strategy != "none":
+            raise ValueError(
+                f"Human player '{config.player_id}' has memory_strategy="
+                f"'{config.memory_strategy}', but human players do not support "
+                f"memory consolidation. Remove the field or set it to 'none'."
+            )
+        self.config = config
+        # Human players always use NoOpStrategy
+        self.memory: MemoryStrategy = create_strategy("none")
+        self._free = free
+        self._choice = choice
+
+    def free_response(self, system_prompt: str, context: str) -> FreeResponse:
+        text = self._free.collect(system_prompt, context)
+        return FreeResponse(text=text)
+
+    def choice_response(
+        self, system_prompt: str, context: str, options: list[str]
+    ) -> ChoiceResponse:
+        selected, text = self._choice.collect(system_prompt, context, options)
+        return ChoiceResponse(selected=selected, text=text)
