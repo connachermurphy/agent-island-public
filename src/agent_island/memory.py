@@ -37,7 +37,7 @@ class MemoryStrategy(ABC):
         Process events from the given round and update internal memory state.
 
         Called at the end of each round (the phase_consolidate_memory step).
-        The strategy owns the LLM call — it calls player.respond() directly
+        The strategy owns the LLM call — it calls player.free_response() directly
         if needed, and clears active_visibility on events it has consumed.
         """
         ...
@@ -110,7 +110,7 @@ This summary will be the only context on the events of this round
 that you will have in future rounds.
 Other players will not be able to see your summary."""
 
-        response = player.respond(
+        response = player.free_response(
             system_prompt=system_prompt,
             context=visible_text,
         )

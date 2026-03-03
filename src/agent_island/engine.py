@@ -9,7 +9,7 @@ from typing import Callable, List
 
 from .history import History
 from .phases import PHASE_REGISTRY
-from .player import Player, PlayerConfig
+from .player import AIPlayer, Player, PlayerConfig
 from .round import Round, RoundContext
 
 
@@ -133,7 +133,7 @@ class GameEngine:
 
         # Initialize the players from the player configurations
         for player_config in self.player_configs:
-            player = Player(player_config)
+            player = AIPlayer(player_config)
             players.append(player)
 
         return players

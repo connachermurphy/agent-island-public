@@ -1,6 +1,7 @@
 import logging
 import re
 import time
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
 
@@ -35,10 +36,38 @@ class PlayerConfig:
     memory_strategy: str = "none"
 
 
-class Player:
+@dataclass
+class FreeResponse:
+    text: str
+    reasoning: str | None = None
+    metadata: dict | None = None
+
+
+@dataclass
+class ChoiceResponse:
+    selected: str | None
+    text: str
+    reasoning: str | None = None
+    metadata: dict | None = None
+
+
+class Player(ABC):
+    config: PlayerConfig
+    memory: MemoryStrategy
+
+    @abstractmethod
+    def free_response(self, system_prompt: str, context: str) -> FreeResponse: ...
+
+    @abstractmethod
+    def choice_response(
+        self, system_prompt: str, context: str, options: list[str]
+    ) -> ChoiceResponse: ...
+
+
+class AIPlayer(Player):
     def __init__(self, config: PlayerConfig, max_retries: int = 3):
         """
-        Initialize the Player class
+        Initialize the AIPlayer class
 
         Args:
             config: PlayerConfig object
@@ -49,21 +78,34 @@ class Player:
         self.client = OpenRouter(api_key=config.api_key)
         self.memory: MemoryStrategy = create_strategy(config.memory_strategy)
 
-    def respond(
+    def free_response(self, system_prompt: str, context: str) -> FreeResponse:
+        result = self._respond(system_prompt, context)
+        return FreeResponse(
+            text=result.text,
+            reasoning=result.reasoning,
+            metadata=result.metadata,
+        )
+
+    def choice_response(
+        self, system_prompt: str, context: str, options: list[str]
+    ) -> ChoiceResponse:
+        result = self._respond(system_prompt, context)
+        selected = self._extract_vote(result.text, options)
+        metadata = dict(result.metadata) if result.metadata else {}
+        if selected is None:
+            metadata["vote_parse_failed"] = True
+        return ChoiceResponse(
+            selected=selected,
+            text=result.text,
+            reasoning=result.reasoning,
+            metadata=metadata or None,
+        )
+
+    def _respond(
         self,
         system_prompt: str,
         context: str,
     ) -> LLMResponse:
-        """
-        Get an LLM response from the player
-
-        Args:
-            system_prompt: Instructions for the player (rules, character, task)
-            context: The game context the player is responding to
-
-        Returns:
-            The response from the client
-        """
         last_exc: Exception | None = None
         for attempt in range(self.max_retries + 1):
             try:
@@ -102,22 +144,10 @@ class Player:
                     )
         raise last_exc  # type: ignore[misc]
 
-    def extract_vote(self, content: str, valid_player_ids: list[str]) -> Optional[str]:
-        """
-        Extract vote from player response using structured format
-
-        Args:
-            response (str): The response from the player
-
-        Returns:
-            Optional[str]: The vote from the player (None if no vote is found)
-        """
-
-        # Grab the vote from the within the <vote> tags
+    def _extract_vote(self, content: str, valid_player_ids: list[str]) -> Optional[str]:
         match = re.search(r"<vote>(.*?)</vote>", content, re.IGNORECASE | re.DOTALL)
         if match:
             vote = match.group(1).strip()
             if vote in valid_player_ids and vote != self.config.player_id:
                 return vote
-
         return None
