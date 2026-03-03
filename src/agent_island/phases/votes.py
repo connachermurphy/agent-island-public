@@ -116,7 +116,9 @@ Other players will not be able to see your vote or explanation.
             active_visibility=[player.config.player_id],
         )
 
-        context.logger.info(f"Player {player.config.player_id} voted for {response.selected}")
+        context.logger.info(
+            "Player %s voted for %s", player.config.player_id, response.selected
+        )
 
     context.votes["vote_tally"] = vote_tally
     context.logger.info(f"Final vote tally: {vote_tally}")
