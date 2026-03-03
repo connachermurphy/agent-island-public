@@ -61,7 +61,7 @@ The remaining players are: {context.active_player_ids}.
 Other players will be able to see your pitch.
         """
 
-        response = player.respond(
+        response = player.free_response(
             system_prompt=system_prompt,
             context=visible_events,
         )
