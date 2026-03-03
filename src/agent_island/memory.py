@@ -110,7 +110,7 @@ This summary will be the only context on the events of this round
 that you will have in future rounds.
 Other players will not be able to see your summary."""
 
-        response = player.respond(
+        response = player.free_response(
             system_prompt=system_prompt,
             context=visible_text,
         )
