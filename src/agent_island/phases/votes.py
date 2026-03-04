@@ -67,31 +67,32 @@ def phase_votes(context: RoundContext) -> None:
         # Exclude the active voter from the candidates
         candidates_for_voter = permute_player_ids([c for c in candidates if c != voter])
 
-        system_prompt = f"""
-{context.rules_prompt}
+        action = (
+            f"{vote_instruction} You cannot vote for yourself. "
+            f"Vote for one of: {candidates_for_voter}. "
+            f"After you have voted, please provide an explanation for your vote. "
+            f"Other players will not be able to see your vote or explanation."
+        )
 
-{player.config.character_prompt}
-
-{vote_instruction} You cannot vote for yourself.
-
-You must vote for one of the following players: {candidates_for_voter}.
-
-Your vote must be of the following format:
+        llm_instructions = """Your vote must be of the following format:
 '<vote>PLAYER ID</vote>', or it will be ignored.
 
 Example: '<vote>X</vote>' is a valid vote, but
 '<vote>[X]</vote>' and '<vote>XY</vote>' are not.
-Here, we assume X and Y are player IDs.
+Here, we assume X and Y are player IDs."""
 
-After you have voted, please provide an explanation for your vote.
+        system_prompt = f"""
+{context.rules_prompt}
 
-Other players will not be able to see your vote or explanation.
+{player.config.character_prompt}
 """
 
         response = player.choice_response(
             system_prompt=system_prompt,
             context=visible_events,
             options=candidates_for_voter,
+            action=action,
+            llm_instructions=llm_instructions,
         )
 
         if response.selected:
@@ -108,7 +109,7 @@ Other players will not be able to see your vote or explanation.
             round_index=context.round_index,
             heading=f"Player {player.config.player_id}'s Vote",
             role=f"player {player.config.player_id}",
-            prompt=f"{system_prompt}\n\n{visible_events}",
+            prompt=f"{system_prompt}\n\n{visible_events}\n\n{action}\n\n{llm_instructions}",
             content=response.text,
             reasoning=response.reasoning,
             metadata=metadata or None,
@@ -116,7 +117,7 @@ Other players will not be able to see your vote or explanation.
             active_visibility=[player.config.player_id],
         )
 
-        context.logger.info(
+        context.logger.debug(
             "Player %s voted for %s", player.config.player_id, response.selected
         )
 

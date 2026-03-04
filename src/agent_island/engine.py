@@ -9,7 +9,7 @@ from typing import Callable, List
 
 from .history import History
 from .phases import PHASE_REGISTRY
-from .player import AIPlayer, Player, PlayerConfig
+from .player import Player
 from .round import Round, RoundContext
 
 
@@ -43,30 +43,31 @@ class GameEngine:
     def __init__(
         self,
         game_config: GameConfig,
-        player_configs: list[PlayerConfig],
+        players: list[Player],
+        on_event=None,
     ):
         """
         Initialize the GameEngine
 
         Args:
             game_config: GameConfig object
-            player_configs: List of PlayerConfig objects
+            players: List of fully-constructed Player objects
+            on_event: Optional callback fired for each new History event
         """
         self.game_config = game_config
-        self.player_configs = player_configs
+        self.players = players
         self.logger = logging.getLogger(__name__)
         self._validate_config()
-        self.players = self._initialize_players()
-        self.history = History()
+        self.history = History(on_event=on_event)
 
     def _validate_config(self) -> None:
         """Validate game config against player configs and phase registry."""
         cfg = self.game_config
 
-        if cfg.num_players != len(self.player_configs):
+        if cfg.num_players != len(self.players):
             raise ValueError(
                 f"num_players ({cfg.num_players}) does not match "
-                f"player config count ({len(self.player_configs)})"
+                f"player count ({len(self.players)})"
             )
 
         if cfg.num_rounds < 1:
@@ -118,26 +119,6 @@ class GameEngine:
         )
         return [PHASE_REGISTRY[name] for name in phase_names]
 
-    def _initialize_players(self) -> List[Player]:
-        """
-        Initialize the players (Player class) from the player configurations
-
-        Args:
-            None
-
-        Returns:
-            List[Player]: List of Player objects
-        """
-        # Initialize an empty list of players
-        players: List[Player] = []
-
-        # Initialize the players from the player configurations
-        for player_config in self.player_configs:
-            player = AIPlayer(player_config)
-            players.append(player)
-
-        return players
-
     def _create_round_context(
         self,
         round_index: int,
@@ -178,7 +159,7 @@ class GameEngine:
             rules_prompt=self.game_config.rules_prompt,
         )
 
-    def play(self):
+    def play(self) -> str:
         """
         Play the game
 
@@ -186,7 +167,7 @@ class GameEngine:
             None
 
         Returns:
-            None
+            str: Path to the written log file
         """
         # Resolve game ID (use provided value for reproduction, else generate fresh)
         game_id = self.game_config.game_id or str(uuid.uuid4())
@@ -229,9 +210,9 @@ class GameEngine:
                 )
                 round.play()
 
-                self.logger.info(f"Vote tally: {round_context.votes['vote_tally']}")
+                self.logger.debug(f"Vote tally: {round_context.votes['vote_tally']}")
 
-                self.logger.info(
+                self.logger.debug(
                     f"{outcome} player: {round_context.votes['selected_player']}"
                 )
 
@@ -242,14 +223,17 @@ class GameEngine:
                         for pid in active_player_ids
                         if pid != round_context.votes["selected_player"]
                     ]
-                    self.logger.info(f"Next round players: {active_player_ids}")
+                    self.logger.debug(f"Next round players: {active_player_ids}")
 
         except Exception as exc:
             self.logger.error("Game %s failed: %s", game_id, exc)
-            self._write_log(game_id, timestamp, status="failed", error=str(exc))
+            log_path = self._write_log(
+                game_id, timestamp, status="failed", error=str(exc)
+            )
             raise
 
-        self._write_log(game_id, timestamp, status="completed", error=None)
+        log_path = self._write_log(game_id, timestamp, status="completed", error=None)
+        return log_path
 
     def _compute_stats(self) -> dict:
         """
@@ -257,7 +241,8 @@ class GameEngine:
 
         All metrics are derived post-hoc from event data:
           - vote_parse_failures: events flagged with metadata["vote_parse_failed"]
-          - reasoning_extraction_failures: non-narrator events with reasoning=None
+          - reasoning_extraction_failures: non-narrator AI player events with
+            reasoning=None
           - responses: number of non-narrator model responses per player
           - cost: sum of metadata["cost"] per player
           - usage: token counts and cost_retrieval_failures per player
@@ -272,6 +257,10 @@ class GameEngine:
         cost_by_player: dict[str, float] = {}
         usage_by_player: dict[str, dict[str, int]] = {}
 
+        human_player_ids = {
+            p.config.player_id for p in self.players if p.config.player_type == "human"
+        }
+
         for round_log in self.history.rounds.values():
             for event in round_log.events:
                 if event.role == "narrator":
@@ -285,7 +274,7 @@ class GameEngine:
                 if meta.get("vote_parse_failed"):
                     vpf_by_player[player_id] = vpf_by_player.get(player_id, 0) + 1
 
-                if event.reasoning is None:
+                if event.reasoning is None and player_id not in human_player_ids:
                     ref_by_player[player_id] = ref_by_player.get(player_id, 0) + 1
 
                 if "cost" in meta:
@@ -346,7 +335,7 @@ class GameEngine:
         timestamp: str,
         status: str,
         error: str | None,
-    ) -> None:
+    ) -> str:
         os.makedirs(self.game_config.logs_dir, exist_ok=True)
 
         output_path = os.path.join(
@@ -381,3 +370,4 @@ class GameEngine:
             }
             json.dump(output, f, indent=2)
         self.logger.info("Wrote game history to %s", output_path)
+        return output_path

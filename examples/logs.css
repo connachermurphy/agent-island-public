@@ -84,6 +84,18 @@ section.round {
   margin-bottom: 0.5rem;
 }
 
+.event-vote {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #e8f0fe;
+  color: #1a56db;
+  border: 1px solid #c3d4f8;
+  border-radius: 4px;
+  padding: 0.2rem 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
 /* ── Prompts & Reasoning (expanders) ── */
 details.prompt,
 details.reasoning {

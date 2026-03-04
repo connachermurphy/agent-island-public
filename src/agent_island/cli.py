@@ -6,11 +6,43 @@ import pathlib
 import dotenv
 
 from .engine import GameConfig, GameEngine
-from .loaders import load_game_config_from_toml, load_player_configs_from_toml
+from .history import Event
+from .loaders import (
+    create_players,
+    load_game_config_from_toml,
+    load_player_configs_from_toml,
+)
 
 LOGS_DIR = "logs"
 
 dotenv.load_dotenv()
+
+
+class CLIFreeCollector:
+    def collect(self, system_prompt: str, context: str, action: str) -> str:
+        # system_prompt and context are not displayed here; the human player
+        # sees game events in real time via the on_event callback.
+        print(f"\n--- {action} ---")
+        return input("Your response: ")
+
+
+class CLIChoiceCollector:
+    def collect(
+        self, system_prompt: str, context: str, options: list[str], action: str
+    ) -> tuple[str, str]:
+        # system_prompt and context are not displayed here; the human player
+        # sees game events in real time via the on_event callback.
+        print(f"\n--- {action} ---")
+        for i, opt in enumerate(options):
+            print(f"  {i + 1}. {opt}")
+        while True:
+            raw = input("Your choice (number): ").strip()
+            if raw.isdigit() and 1 <= int(raw) <= len(options):
+                selected = options[int(raw) - 1]
+                break
+            print(f"Please enter a number between 1 and {len(options)}.")
+        text = input("Explanation: ")
+        return selected, text
 
 
 def main() -> None:
@@ -31,12 +63,15 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENROUTER_API_KEY is required but not set.")
+    api_key = os.getenv("OPENROUTER_API_KEY", "")
 
     game_data = load_game_config_from_toml(args.game_config)
     player_configs = load_player_configs_from_toml(args.player_config, api_key=api_key)
+
+    if any(c.player_type == "ai" for c in player_configs) and not api_key:
+        raise RuntimeError("OPENROUTER_API_KEY is required for AI players but not set.")
+
+    players = create_players(player_configs, CLIFreeCollector(), CLIChoiceCollector())
 
     game_config = GameConfig(
         num_players=game_data["num_players"],
@@ -49,5 +84,30 @@ def main() -> None:
         game_id=game_data.get("game_id"),
     )
 
-    game = GameEngine(game_config=game_config, player_configs=player_configs)
-    game.play()
+    human_ids = {p.config.player_id for p in players if p.config.player_type == "human"}
+
+    def on_event(event: Event) -> None:
+        if any(pid in event.visibility for pid in human_ids):
+            content = event.content
+            if event.metadata and event.metadata.get("vote"):
+                content = f"Vote: {event.metadata['vote']}\n{content}"
+            print(f"\n{event.heading}:\n{content}")
+
+    if human_ids:
+        # Suppress INFO noise; game events stream to stdout via on_event instead
+        logging.getLogger().setLevel(logging.WARNING)
+
+        for player in players:
+            if player.config.player_type == "human":
+                print(f"\n=== You are Player {player.config.player_id} ===")
+                print(player.config.character_prompt.strip())
+                print("\n--- Game Rules ---")
+                print(game_config.rules_prompt.strip())
+
+    game = GameEngine(
+        game_config=game_config,
+        players=players,
+        on_event=on_event if human_ids else None,
+    )
+    log_path = game.play()
+    print(f"\nWrote game history to {log_path}")

@@ -2,8 +2,8 @@ import logging
 import re
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, Protocol
 
 from openrouter import OpenRouter
 
@@ -16,24 +16,18 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PlayerConfig:
     """
-    Configuration for a player
+    Configuration for a player.
 
-    Args:
-        player_id: The ID of the player
-        character_prompt: The prompt for the player's character
-        provider: The provider of the player's client
-        model: The model of the player's client
-        api_key: The API key for the player's client
-        client_kwargs: The kwargs for the player's client
-            (use Responses API param names)
+    AI players require model and api_key. Human players can omit them.
     """
 
     player_id: str
     character_prompt: str
-    model: str
-    api_key: str
-    client_kwargs: dict
+    model: str = ""
+    api_key: str = ""
+    client_kwargs: dict = field(default_factory=dict)
     memory_strategy: str = "none"
+    player_type: str = "ai"
 
 
 @dataclass
@@ -51,35 +45,49 @@ class ChoiceResponse:
     metadata: dict | None = None
 
 
+class FreeCollector(Protocol):
+    def collect(self, system_prompt: str, context: str, action: str) -> str: ...
+
+
+class ChoiceCollector(Protocol):
+    def collect(
+        self, system_prompt: str, context: str, options: list[str], action: str
+    ) -> tuple[str, str]:
+        # returns (selected, text)
+        ...
+
+
 class Player(ABC):
     config: PlayerConfig
     memory: MemoryStrategy
 
     @abstractmethod
-    def free_response(self, system_prompt: str, context: str) -> FreeResponse: ...
+    def free_response(
+        self, system_prompt: str, context: str, action: str, llm_instructions: str = ""
+    ) -> FreeResponse: ...
 
     @abstractmethod
     def choice_response(
-        self, system_prompt: str, context: str, options: list[str]
+        self,
+        system_prompt: str,
+        context: str,
+        options: list[str],
+        action: str,
+        llm_instructions: str = "",
     ) -> ChoiceResponse: ...
 
 
 class AIPlayer(Player):
     def __init__(self, config: PlayerConfig, max_retries: int = 3):
-        """
-        Initialize the AIPlayer class
-
-        Args:
-            config: PlayerConfig object
-            max_retries: Number of retry attempts on API failure
-        """
         self.config = config
         self.max_retries = max_retries
         self.client = OpenRouter(api_key=config.api_key)
         self.memory: MemoryStrategy = create_strategy(config.memory_strategy)
 
-    def free_response(self, system_prompt: str, context: str) -> FreeResponse:
-        result = self._respond(system_prompt, context)
+    def free_response(
+        self, system_prompt: str, context: str, action: str, llm_instructions: str = ""
+    ) -> FreeResponse:
+        result = self._respond(system_prompt, context, action, llm_instructions)
         return FreeResponse(
             text=result.text,
             reasoning=result.reasoning,
@@ -87,9 +95,14 @@ class AIPlayer(Player):
         )
 
     def choice_response(
-        self, system_prompt: str, context: str, options: list[str]
+        self,
+        system_prompt: str,
+        context: str,
+        options: list[str],
+        action: str,
+        llm_instructions: str = "",
     ) -> ChoiceResponse:
-        result = self._respond(system_prompt, context)
+        result = self._respond(system_prompt, context, action, llm_instructions)
         selected = self._extract_vote(result.text, options)
         metadata = dict(result.metadata) if result.metadata else {}
         if selected is None:
@@ -105,14 +118,20 @@ class AIPlayer(Player):
         self,
         system_prompt: str,
         context: str,
+        action: str,
+        llm_instructions: str = "",
     ) -> LLMResponse:
+        input_parts = [context, action]
+        if llm_instructions:
+            input_parts.append(llm_instructions)
+
         last_exc: Exception | None = None
         for attempt in range(self.max_retries + 1):
             try:
                 response = self.client.beta.responses.send(
                     model=self.config.model,
                     instructions=system_prompt,
-                    input=context,
+                    input="\n\n".join(input_parts),
                     **self.config.client_kwargs,
                 )
                 result = parse_openrouter_response(response)
@@ -151,3 +170,39 @@ class AIPlayer(Player):
             if vote in valid_player_ids and vote != self.config.player_id:
                 return vote
         return None
+
+
+class HumanPlayer(Player):
+    def __init__(
+        self, config: PlayerConfig, free: FreeCollector, choice: ChoiceCollector
+    ):
+        if config.memory_strategy != "none":
+            raise ValueError(
+                f"Human player '{config.player_id}' has memory_strategy="
+                f"'{config.memory_strategy}', but human players do not support "
+                f"memory consolidation. Remove the field or set it to 'none'."
+            )
+        self.config = config
+        # Human players always use NoOpStrategy
+        self.memory: MemoryStrategy = create_strategy("none")
+        self._free = free
+        self._choice = choice
+
+    def free_response(
+        self, system_prompt: str, context: str, action: str, llm_instructions: str = ""
+    ) -> FreeResponse:
+        # llm_instructions (e.g. XML vote format) is for AI parsing; ignored for humans.
+        text = self._free.collect(system_prompt, context, action)
+        return FreeResponse(text=text)
+
+    def choice_response(
+        self,
+        system_prompt: str,
+        context: str,
+        options: list[str],
+        action: str,
+        llm_instructions: str = "",
+    ) -> ChoiceResponse:
+        # llm_instructions (e.g. XML vote format) is for AI parsing; ignored for humans.
+        selected, text = self._choice.collect(system_prompt, context, options, action)
+        return ChoiceResponse(selected=selected, text=text)
