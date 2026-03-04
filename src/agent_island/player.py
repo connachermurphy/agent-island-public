@@ -46,12 +46,12 @@ class ChoiceResponse:
 
 
 class FreeCollector(Protocol):
-    def collect(self, system_prompt: str, context: str) -> str: ...
+    def collect(self, system_prompt: str, context: str, action: str) -> str: ...
 
 
 class ChoiceCollector(Protocol):
     def collect(
-        self, system_prompt: str, context: str, options: list[str]
+        self, system_prompt: str, context: str, options: list[str], action: str
     ) -> tuple[str, str]:
         # returns (selected, text)
         ...
@@ -62,11 +62,18 @@ class Player(ABC):
     memory: MemoryStrategy
 
     @abstractmethod
-    def free_response(self, system_prompt: str, context: str) -> FreeResponse: ...
+    def free_response(
+        self, system_prompt: str, context: str, action: str, llm_instructions: str = ""
+    ) -> FreeResponse: ...
 
     @abstractmethod
     def choice_response(
-        self, system_prompt: str, context: str, options: list[str]
+        self,
+        system_prompt: str,
+        context: str,
+        options: list[str],
+        action: str,
+        llm_instructions: str = "",
     ) -> ChoiceResponse: ...
 
 
@@ -77,8 +84,10 @@ class AIPlayer(Player):
         self.client = OpenRouter(api_key=config.api_key)
         self.memory: MemoryStrategy = create_strategy(config.memory_strategy)
 
-    def free_response(self, system_prompt: str, context: str) -> FreeResponse:
-        result = self._respond(system_prompt, context)
+    def free_response(
+        self, system_prompt: str, context: str, action: str, llm_instructions: str = ""
+    ) -> FreeResponse:
+        result = self._respond(system_prompt, context, action, llm_instructions)
         return FreeResponse(
             text=result.text,
             reasoning=result.reasoning,
@@ -86,9 +95,14 @@ class AIPlayer(Player):
         )
 
     def choice_response(
-        self, system_prompt: str, context: str, options: list[str]
+        self,
+        system_prompt: str,
+        context: str,
+        options: list[str],
+        action: str,
+        llm_instructions: str = "",
     ) -> ChoiceResponse:
-        result = self._respond(system_prompt, context)
+        result = self._respond(system_prompt, context, action, llm_instructions)
         selected = self._extract_vote(result.text, options)
         metadata = dict(result.metadata) if result.metadata else {}
         if selected is None:
@@ -104,14 +118,21 @@ class AIPlayer(Player):
         self,
         system_prompt: str,
         context: str,
+        action: str,
+        llm_instructions: str = "",
     ) -> LLMResponse:
+        input_parts = [action]
+        if llm_instructions:
+            input_parts.append(llm_instructions)
+        input_parts.append(context)
+
         last_exc: Exception | None = None
         for attempt in range(self.max_retries + 1):
             try:
                 response = self.client.beta.responses.send(
                     model=self.config.model,
                     instructions=system_prompt,
-                    input=context,
+                    input="\n\n".join(input_parts),
                     **self.config.client_kwargs,
                 )
                 result = parse_openrouter_response(response)
@@ -168,12 +189,19 @@ class HumanPlayer(Player):
         self._free = free
         self._choice = choice
 
-    def free_response(self, system_prompt: str, context: str) -> FreeResponse:
-        text = self._free.collect(system_prompt, context)
+    def free_response(
+        self, system_prompt: str, context: str, action: str, llm_instructions: str = ""
+    ) -> FreeResponse:
+        text = self._free.collect(system_prompt, context, action)
         return FreeResponse(text=text)
 
     def choice_response(
-        self, system_prompt: str, context: str, options: list[str]
+        self,
+        system_prompt: str,
+        context: str,
+        options: list[str],
+        action: str,
+        llm_instructions: str = "",
     ) -> ChoiceResponse:
-        selected, text = self._choice.collect(system_prompt, context, options)
+        selected, text = self._choice.collect(system_prompt, context, options, action)
         return ChoiceResponse(selected=selected, text=text)

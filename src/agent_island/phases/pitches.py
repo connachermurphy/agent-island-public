@@ -49,28 +49,29 @@ def phase_pitches(context: RoundContext) -> None:
         visible_events = context.history.render_for_player(player.config.player_id)
         if memory_context:
             visible_events = f"{memory_context}\n\n{visible_events}"
+        action = (
+            f"Please make your pitch for why you should {outcome}. "
+            f"The remaining players are: {context.active_player_ids}. "
+            f"Other players will be able to see your pitch."
+        )
+
         system_prompt = f"""
 {context.rules_prompt}
 
 {player.config.character_prompt}
-
-Please make your pitch for why you should {outcome}.
-
-The remaining players are: {context.active_player_ids}.
-
-Other players will be able to see your pitch.
         """
 
         response = player.free_response(
             system_prompt=system_prompt,
             context=visible_events,
+            action=action,
         )
 
         context.history.add_event(
             round_index=context.round_index,
             heading=f"Player {player.config.player_id}'s Pitch",
             role=f"player {player.config.player_id}",
-            prompt=f"{system_prompt}\n\n{visible_events}",
+            prompt=f"{system_prompt}\n\n{action}\n\n{visible_events}",
             content=response.text,
             reasoning=response.reasoning,
             metadata=response.metadata,

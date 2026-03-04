@@ -101,18 +101,21 @@ class SummarizationStrategy(MemoryStrategy):
         if memory_context:
             visible_text = f"{memory_context}\n\n{visible_text}"
 
+        action = (
+            "Please briefly summarize the events of this round. "
+            "This summary will be the only context on the events of this round "
+            "that you will have in future rounds. "
+            "Other players will not be able to see your summary."
+        )
+
         system_prompt = f"""{rules_prompt}
 
-{player.config.character_prompt}
-
-Please briefly summarize the events of this round.
-This summary will be the only context on the events of this round
-that you will have in future rounds.
-Other players will not be able to see your summary."""
+{player.config.character_prompt}"""
 
         response = player.free_response(
             system_prompt=system_prompt,
             context=visible_text,
+            action=action,
         )
 
         self.summaries[round_index] = response.text

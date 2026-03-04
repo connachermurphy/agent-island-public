@@ -74,6 +74,12 @@ def render_html_event(
             f'  <div class="event-visibility">visibility: {html.escape(vis_str)}</div>'
         )
 
+        vote = (event.get("metadata") or {}).get("vote")
+        if vote:
+            parts.append(
+                f'  <div class="event-vote">Vote: {html.escape(str(vote))}</div>'
+            )
+
         if include_prompt:
             parts.append('  <details class="prompt">')
             parts.append("    <summary>Prompt</summary>")

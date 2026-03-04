@@ -159,7 +159,7 @@ class GameEngine:
             rules_prompt=self.game_config.rules_prompt,
         )
 
-    def play(self):
+    def play(self) -> str:
         """
         Play the game
 
@@ -167,7 +167,7 @@ class GameEngine:
             None
 
         Returns:
-            None
+            str: Path to the written log file
         """
         # Resolve game ID (use provided value for reproduction, else generate fresh)
         game_id = self.game_config.game_id or str(uuid.uuid4())
@@ -227,10 +227,11 @@ class GameEngine:
 
         except Exception as exc:
             self.logger.error("Game %s failed: %s", game_id, exc)
-            self._write_log(game_id, timestamp, status="failed", error=str(exc))
+            log_path = self._write_log(game_id, timestamp, status="failed", error=str(exc))
             raise
 
-        self._write_log(game_id, timestamp, status="completed", error=None)
+        log_path = self._write_log(game_id, timestamp, status="completed", error=None)
+        return log_path
 
     def _compute_stats(self) -> dict:
         """
@@ -365,4 +366,5 @@ class GameEngine:
                 "history": self.history.to_dict(),
             }
             json.dump(output, f, indent=2)
-        print(f"Wrote game history to {output_path}")
+        self.logger.info("Wrote game history to %s", output_path)
+        return output_path

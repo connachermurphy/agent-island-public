@@ -19,15 +19,16 @@ dotenv.load_dotenv()
 
 
 class CLIFreeCollector:
-    def collect(self, system_prompt: str, context: str) -> str:
-        return input("\nYour response: ")
+    def collect(self, system_prompt: str, context: str, action: str) -> str:
+        print(f"\n--- {action} ---")
+        return input("Your response: ")
 
 
 class CLIChoiceCollector:
     def collect(
-        self, system_prompt: str, context: str, options: list[str]
+        self, system_prompt: str, context: str, options: list[str], action: str
     ) -> tuple[str, str]:
-        print()
+        print(f"\n--- {action} ---")
         for i, opt in enumerate(options):
             print(f"  {i + 1}. {opt}")
         while True:
@@ -86,6 +87,13 @@ def main() -> None:
         # Suppress INFO noise; game events stream to stdout via on_event instead
         logging.getLogger().setLevel(logging.WARNING)
 
+        for player in players:
+            if player.config.player_type == "human":
+                print(f"\n=== You are Player {player.config.player_id} ===")
+                print(player.config.character_prompt.strip())
+                print("\n--- Game Rules ---")
+                print(game_config.rules_prompt.strip())
+
         def on_event(event: Event) -> None:
             if any(pid in event.visibility for pid in human_ids):
                 content = event.content
@@ -94,4 +102,5 @@ def main() -> None:
                 print(f"\n{event.heading}:\n{content}")
 
     game = GameEngine(game_config=game_config, players=players, on_event=on_event)
-    game.play()
+    log_path = game.play()
+    print(f"\nWrote game history to {log_path}")
