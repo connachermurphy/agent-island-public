@@ -227,7 +227,9 @@ class GameEngine:
 
         except Exception as exc:
             self.logger.error("Game %s failed: %s", game_id, exc)
-            log_path = self._write_log(game_id, timestamp, status="failed", error=str(exc))
+            log_path = self._write_log(
+                game_id, timestamp, status="failed", error=str(exc)
+            )
             raise
 
         log_path = self._write_log(game_id, timestamp, status="completed", error=None)
@@ -239,7 +241,8 @@ class GameEngine:
 
         All metrics are derived post-hoc from event data:
           - vote_parse_failures: events flagged with metadata["vote_parse_failed"]
-          - reasoning_extraction_failures: non-narrator AI player events with reasoning=None
+          - reasoning_extraction_failures: non-narrator AI player events with
+            reasoning=None
           - responses: number of non-narrator model responses per player
           - cost: sum of metadata["cost"] per player
           - usage: token counts and cost_retrieval_failures per player

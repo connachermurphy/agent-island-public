@@ -20,6 +20,8 @@ dotenv.load_dotenv()
 
 class CLIFreeCollector:
     def collect(self, system_prompt: str, context: str, action: str) -> str:
+        # system_prompt and context are not displayed here; the human player
+        # sees game events in real time via the on_event callback.
         print(f"\n--- {action} ---")
         return input("Your response: ")
 
@@ -28,6 +30,8 @@ class CLIChoiceCollector:
     def collect(
         self, system_prompt: str, context: str, options: list[str], action: str
     ) -> tuple[str, str]:
+        # system_prompt and context are not displayed here; the human player
+        # sees game events in real time via the on_event callback.
         print(f"\n--- {action} ---")
         for i, opt in enumerate(options):
             print(f"  {i + 1}. {opt}")
@@ -82,7 +86,13 @@ def main() -> None:
 
     human_ids = {p.config.player_id for p in players if p.config.player_type == "human"}
 
-    on_event = None
+    def on_event(event: Event) -> None:
+        if any(pid in event.visibility for pid in human_ids):
+            content = event.content
+            if event.metadata and event.metadata.get("vote"):
+                content = f"Vote: {event.metadata['vote']}\n{content}"
+            print(f"\n{event.heading}:\n{content}")
+
     if human_ids:
         # Suppress INFO noise; game events stream to stdout via on_event instead
         logging.getLogger().setLevel(logging.WARNING)
@@ -94,13 +104,10 @@ def main() -> None:
                 print("\n--- Game Rules ---")
                 print(game_config.rules_prompt.strip())
 
-        def on_event(event: Event) -> None:
-            if any(pid in event.visibility for pid in human_ids):
-                content = event.content
-                if event.metadata and event.metadata.get("vote"):
-                    content = f"Vote: {event.metadata['vote']}\n{content}"
-                print(f"\n{event.heading}:\n{content}")
-
-    game = GameEngine(game_config=game_config, players=players, on_event=on_event)
+    game = GameEngine(
+        game_config=game_config,
+        players=players,
+        on_event=on_event if human_ids else None,
+    )
     log_path = game.play()
     print(f"\nWrote game history to {log_path}")

@@ -121,10 +121,9 @@ class AIPlayer(Player):
         action: str,
         llm_instructions: str = "",
     ) -> LLMResponse:
-        input_parts = [action]
+        input_parts = [context, action]
         if llm_instructions:
             input_parts.append(llm_instructions)
-        input_parts.append(context)
 
         last_exc: Exception | None = None
         for attempt in range(self.max_retries + 1):
@@ -192,6 +191,7 @@ class HumanPlayer(Player):
     def free_response(
         self, system_prompt: str, context: str, action: str, llm_instructions: str = ""
     ) -> FreeResponse:
+        # llm_instructions (e.g. XML vote format) is for AI parsing; ignored for humans.
         text = self._free.collect(system_prompt, context, action)
         return FreeResponse(text=text)
 
@@ -203,5 +203,6 @@ class HumanPlayer(Player):
         action: str,
         llm_instructions: str = "",
     ) -> ChoiceResponse:
+        # llm_instructions (e.g. XML vote format) is for AI parsing; ignored for humans.
         selected, text = self._choice.collect(system_prompt, context, options, action)
         return ChoiceResponse(selected=selected, text=text)
