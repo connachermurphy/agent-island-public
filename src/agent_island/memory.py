@@ -84,22 +84,22 @@ class SummarizationStrategy(MemoryStrategy):
 
         # Collect events visible to this player in the current round
         visible_parts: List[str] = []
-        visible_events = []
+        consumed_events = []
         for event in round_log.events:
             if player_id in event.active_visibility:
                 visible_parts.append(f"{event.heading}:")
                 visible_parts.append(f"{event.content}\n")
-                visible_events.append(event)
+                consumed_events.append(event)
 
         if not visible_parts:
             return
 
-        visible_text = "\n".join(visible_parts)
+        visible_events = "\n".join(visible_parts)
 
         # Include past summaries so the agent can connect events across rounds
         memory_context = self.render()
         if memory_context:
-            visible_text = f"{memory_context}\n\n{visible_text}"
+            visible_events = f"{memory_context}\n\n{visible_events}"
 
         action = (
             "Please briefly summarize the events of this round. "
@@ -114,7 +114,7 @@ class SummarizationStrategy(MemoryStrategy):
 
         response = player.free_response(
             system_prompt=system_prompt,
-            context=visible_text,
+            context=visible_events,
             action=action,
         )
 
@@ -124,7 +124,7 @@ class SummarizationStrategy(MemoryStrategy):
             round_index=round_index,
             heading=f"Player {player_id}'s Memory Consolidation",
             role=f"player {player_id}",
-            prompt=f"{system_prompt}\n\n{visible_text}",
+            prompt=f"{system_prompt}\n\n{visible_events}\n\n{action}",
             content=response.text,
             reasoning=response.reasoning,
             metadata=response.metadata,
@@ -133,7 +133,7 @@ class SummarizationStrategy(MemoryStrategy):
         )
 
         # Clear active_visibility on consumed events
-        for event in visible_events:
+        for event in consumed_events:
             event.active_visibility.remove(player_id)
 
     def render(self) -> str:

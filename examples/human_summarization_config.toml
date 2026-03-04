@@ -1,4 +1,4 @@
-# Player configuration for a 2 AI vs 1 human game.
+# Player configuration for a 2 AI vs 1 human game with AI memory summarization.
 # Pair with examples/game_config.toml.
 # Secrets stay in your environment (.env). Set OPENROUTER_API_KEY.
 
@@ -6,11 +6,13 @@
 player_id = "A"
 model = "google/gemini-3-flash-preview"
 character_prompt = "You are player A."
+memory_strategy = "summarization"
 
 [[players]]
 player_id = "B"
 model = "mistralai/ministral-8b-2512"
 character_prompt = "You are player B."
+memory_strategy = "summarization"
 
 [[players]]
 player_id = "H"

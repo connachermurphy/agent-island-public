@@ -109,7 +109,7 @@ Here, we assume X and Y are player IDs."""
             round_index=context.round_index,
             heading=f"Player {player.config.player_id}'s Vote",
             role=f"player {player.config.player_id}",
-            prompt=f"{system_prompt}\n\n{action}\n\n{llm_instructions}\n\n{visible_events}",
+            prompt=f"{system_prompt}\n\n{visible_events}\n\n{action}\n\n{llm_instructions}",
             content=response.text,
             reasoning=response.reasoning,
             metadata=metadata or None,
