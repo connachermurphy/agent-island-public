@@ -335,7 +335,7 @@ class GameEngine:
         timestamp: str,
         status: str,
         error: str | None,
-    ) -> None:
+    ) -> str:
         os.makedirs(self.game_config.logs_dir, exist_ok=True)
 
         output_path = os.path.join(
