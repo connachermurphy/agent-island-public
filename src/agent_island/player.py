@@ -1,9 +1,10 @@
 import logging
+import queue
 import re
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional, Protocol
+from typing import Callable, Optional, Protocol
 
 from openrouter import OpenRouter
 
@@ -206,3 +207,57 @@ class HumanPlayer(Player):
         # llm_instructions (e.g. XML vote format) is for AI parsing; ignored for humans.
         selected, text = self._choice.collect(system_prompt, context, options, action)
         return ChoiceResponse(selected=selected, text=text)
+
+
+# ---------------------------------------------------------------------------
+# Remote collectors — for use with the FastAPI web backend.
+#
+# Both collectors block on a queue.Queue until the web layer pushes a payload.
+# The on_waiting callback is fired first so the backend can tell the frontend
+# that human input is needed and what prompt to show.
+#
+# on_waiting signature:
+#   on_waiting(kind, system_prompt, context, action, options)
+#   kind: "free" | "choice"
+#   options: list[str] for "choice", None for "free"
+# ---------------------------------------------------------------------------
+
+
+class RemoteFreeCollector:
+    """Blocks on input_queue until the web layer posts {"text": ...}."""
+
+    def __init__(
+        self,
+        input_queue: "queue.Queue[dict]",
+        on_waiting: Callable[[str, str, str, str, "list[str] | None"], None],
+    ):
+        self._input_queue = input_queue
+        self._on_waiting = on_waiting
+
+    def collect(self, system_prompt: str, context: str, action: str) -> str:
+        self._on_waiting("free", system_prompt, context, action, None)
+        payload = self._input_queue.get(block=True)
+        if payload.get("_cancelled"):
+            raise RuntimeError("Game session cancelled.")
+        return payload["text"]
+
+
+class RemoteChoiceCollector:
+    """Blocks on input_queue until the web layer posts {"selected": ..., "text": ...}."""
+
+    def __init__(
+        self,
+        input_queue: "queue.Queue[dict]",
+        on_waiting: Callable[[str, str, str, str, "list[str] | None"], None],
+    ):
+        self._input_queue = input_queue
+        self._on_waiting = on_waiting
+
+    def collect(
+        self, system_prompt: str, context: str, options: list[str], action: str
+    ) -> tuple[str, str]:
+        self._on_waiting("choice", system_prompt, context, action, options)
+        payload = self._input_queue.get(block=True)
+        if payload.get("_cancelled"):
+            raise RuntimeError("Game session cancelled.")
+        return payload["selected"], payload["text"]
