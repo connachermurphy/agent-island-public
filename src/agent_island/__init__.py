@@ -12,6 +12,8 @@ from .player import (
     HumanPlayer,
     Player,
     PlayerConfig,
+    RemoteChoiceCollector,
+    RemoteFreeCollector,
 )
 
 __all__ = [
@@ -24,6 +26,8 @@ __all__ = [
     "PHASE_REGISTRY",
     "Player",
     "PlayerConfig",
+    "RemoteChoiceCollector",
+    "RemoteFreeCollector",
     "create_players",
     "load_game_config_from_toml",
     "load_player_configs_from_toml",
