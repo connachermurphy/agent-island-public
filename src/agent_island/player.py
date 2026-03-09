@@ -243,7 +243,8 @@ class RemoteFreeCollector:
 
 
 class RemoteChoiceCollector:
-    """Blocks on input_queue until the web layer posts {"selected": ..., "text": ...}."""
+    """Blocks on input_queue until the web layer posts
+    {"selected": ..., "text": ...}."""
 
     def __init__(
         self,
