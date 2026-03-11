@@ -110,7 +110,9 @@ class SummarizationStrategy(MemoryStrategy):
 
         system_prompt = f"""{rules_prompt}
 
-{player.config.character_prompt}"""
+<character>
+{player.config.character_prompt}
+</character>"""
 
         response = player.free_response(
             system_prompt=system_prompt,

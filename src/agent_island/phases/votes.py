@@ -84,7 +84,9 @@ Here, we assume X and Y are player IDs."""
         system_prompt = f"""
 {context.rules_prompt}
 
+<character>
 {player.config.character_prompt}
+</character>
 """
 
         response = player.choice_response(
