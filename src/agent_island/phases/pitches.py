@@ -58,7 +58,9 @@ def phase_pitches(context: RoundContext) -> None:
         system_prompt = f"""
 {context.rules_prompt}
 
+<character>
 {player.config.character_prompt}
+</character>
         """
 
         response = player.free_response(
