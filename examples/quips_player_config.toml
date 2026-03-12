@@ -1,0 +1,19 @@
+# Player config for testing opponent_quips phase.
+# 2 AI players + 1 human player.
+# Pair with examples/quips_game_config.toml.
+# Set OPENROUTER_API_KEY in your environment.
+
+[[players]]
+player_id = "A"
+model = "google/gemini-3-flash-preview"
+character_prompt = "You are player A. You are competitive and strategic."
+
+[[players]]
+player_id = "B"
+model = "mistralai/ministral-8b-2512"
+character_prompt = "You are player B. You are charming and persuasive."
+
+[[players]]
+player_id = "H"
+player_type = "human"
+character_prompt = "You are player H."
