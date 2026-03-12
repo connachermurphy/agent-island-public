@@ -38,8 +38,7 @@ def phase_opponent_quips(context: RoundContext) -> None:
             visible_events = f"{memory_context}\n\n{visible_events}"
 
         opponent_ids = [
-            pid for pid in context.history.player_ids
-            if pid != player.config.player_id
+            pid for pid in context.history.player_ids if pid != player.config.player_id
         ]
 
         action = (
@@ -80,7 +79,9 @@ def phase_opponent_quips(context: RoundContext) -> None:
                     **(response.metadata or {}),
                     "quip_target": target_id,
                     "quip_author": player.config.player_id,
-                } if i == 0 else {
+                }
+                if i == 0
+                else {
                     "quip_target": target_id,
                     "quip_author": player.config.player_id,
                 },
