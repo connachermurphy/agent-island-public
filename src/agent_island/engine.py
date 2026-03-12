@@ -342,7 +342,7 @@ class GameEngine:
             self.game_config.logs_dir,
             f"{self.game_config.log_prefix}_{game_id}.json",
         )
-        with open(output_path, "w") as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             output = {
                 "game": {
                     "id": game_id,
