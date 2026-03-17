@@ -22,7 +22,7 @@ class GameConfig:
         num_players: Expected number of players (validated against player configs)
         num_rounds: Number of rounds to play (final round determined by index)
         phases: Default ordered list of phase names (must be keys in PHASE_REGISTRY)
-        logs_dir: Directory to save logs
+        logs_dir: Directory to save logs (None to skip logging)
         rules_prompt: Prompt with the rules of the game
         round_phase_overrides: Per-round phase overrides keyed by round number
         log_prefix: Optional prefix for log filenames (default: "gameplay")
@@ -32,8 +32,8 @@ class GameConfig:
     num_players: int
     num_rounds: int
     phases: list[str]
-    logs_dir: str
     rules_prompt: str
+    logs_dir: str | None = field(default=None)
     round_phase_overrides: dict[int, list[str]] = field(default_factory=dict)
     log_prefix: str = field(default="gameplay")
     game_id: str | None = field(default=None)
@@ -159,7 +159,7 @@ class GameEngine:
             rules_prompt=self.game_config.rules_prompt,
         )
 
-    def play(self) -> str:
+    def play(self) -> str | None:
         """
         Play the game
 
@@ -167,7 +167,7 @@ class GameEngine:
             None
 
         Returns:
-            str: Path to the written log file
+            str | None: Path to the written log file, or None if logging is disabled
         """
         # Resolve game ID (use provided value for reproduction, else generate fresh)
         game_id = self.game_config.game_id or str(uuid.uuid4())
@@ -335,7 +335,10 @@ class GameEngine:
         timestamp: str,
         status: str,
         error: str | None,
-    ) -> str:
+    ) -> str | None:
+        if self.game_config.logs_dir is None:
+            return None
+
         os.makedirs(self.game_config.logs_dir, exist_ok=True)
 
         output_path = os.path.join(

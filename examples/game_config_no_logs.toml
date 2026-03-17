@@ -1,0 +1,33 @@
+[game]
+num_players = 3
+num_rounds = 2
+phases = ["pitches", "votes", "consolidate_memory"]
+logs_dir = ""
+rules_prompt = """
+You are a player in a game with 3 players.
+In round 1, you and the other players will first
+make a pitch for why you should advance to the next
+round. After all players make their pitches, you
+will then vote to eliminate one other player. The
+player with the most votes is eliminated. You will
+be notified explicitly when it is your turn to vote.
+
+In round 2, you will make a pitch for why you should
+win the game. The previously eliminated players will
+choose the winner. The player with the most votes
+wins the game.
+
+You will speak in a random order. You can reference
+anything in your pitches and votes, including
+previous players' speeches and actions. Only
+reference events that appear in your game history.
+Do not fabricate or invent interactions,
+conversations, or events that did not occur. Do not
+simulate or predict the outcome of votes or future
+rounds.
+"""
+
+# Skip memory consolidation in the final round
+[[game.round_overrides]]
+round = 2
+phases = ["pitches", "votes"]

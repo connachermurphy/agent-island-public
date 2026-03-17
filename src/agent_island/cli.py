@@ -77,7 +77,7 @@ def main() -> None:
         num_players=game_data["num_players"],
         num_rounds=game_data["num_rounds"],
         phases=game_data["phases"],
-        logs_dir=game_data.get("logs_dir", LOGS_DIR),
+        logs_dir=game_data.get("logs_dir", LOGS_DIR) or None,
         rules_prompt=game_data["rules_prompt"],
         round_phase_overrides=game_data.get("round_phase_overrides", {}),
         log_prefix=game_data.get("log_prefix", "gameplay"),
@@ -110,4 +110,7 @@ def main() -> None:
         on_event=on_event if human_ids else None,
     )
     log_path = game.play()
-    print(f"\nWrote game history to {log_path}")
+    if log_path:
+        print(f"\nWrote game history to {log_path}")
+    else:
+        print("\nSkipped writing game log (no logs_dir configured)")
