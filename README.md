@@ -1,4 +1,4 @@
-# agent-island-public
+# agent-island
 Agent Island
 
 ## Usage
