@@ -1,0 +1,20 @@
+# Player config with a mix of:
+# - explicit AI player
+# - implicit AI player (no player_type field, should default to "ai")
+# - human player
+
+[[players]]
+player_id = "A"
+player_type = "ai"
+model = "google/gemini-3-flash-preview"
+character_prompt = "You are player A."
+
+[[players]]
+player_id = "B"
+model = "mistralai/ministral-8b-2512"
+character_prompt = "You are player B."
+
+[[players]]
+player_id = "H"
+player_type = "human"
+character_prompt = "You are player H."

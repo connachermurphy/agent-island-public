@@ -10,6 +10,8 @@ from .player import (
     PlayerConfig,
 )
 
+VALID_PLAYER_TYPES = {"ai", "human"}
+
 
 def load_game_config_from_toml(config_path: pathlib.Path) -> dict:
     with open(config_path, "rb") as f:
@@ -37,6 +39,13 @@ def load_player_configs_from_toml(
     with open(config_path, "rb") as f:
         data = tomllib.load(f)
     players = data.get("players", [])
+    for i, p in enumerate(players):
+        player_type = p.get("player_type", "ai")
+        if player_type not in VALID_PLAYER_TYPES:
+            raise ValueError(
+                f"players[{i}] has invalid player_type '{player_type}', "
+                f"must be one of {sorted(VALID_PLAYER_TYPES)}"
+            )
     return [
         PlayerConfig(
             player_id=p["player_id"],
