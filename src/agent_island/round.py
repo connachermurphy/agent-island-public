@@ -80,7 +80,10 @@ class Round:
         )
 
         for phase in self.phases:
-            self.context.logger.info(f"Starting {phase.__name__}")
+            name = getattr(phase, "__name__", None) or getattr(
+                phase, "func", phase
+            ).__name__
+            self.context.logger.info(f"Starting {name}")
             phase(self.context)
 
         self.context.logger.info(f"Round {self.context.round_index} complete")

@@ -19,6 +19,7 @@ def load_game_config_from_toml(config_path: pathlib.Path) -> dict:
     game = data.get("game", {})
 
     # Parse round_overrides array-of-tables into dict[int, list[str]]
+    # and extract per-round phase_config overrides
     round_overrides = game.pop("round_overrides", [])
     for i, entry in enumerate(round_overrides):
         if "round" not in entry or "phases" not in entry:
@@ -29,6 +30,14 @@ def load_game_config_from_toml(config_path: pathlib.Path) -> dict:
     game["round_phase_overrides"] = {
         entry["round"]: entry["phases"] for entry in round_overrides
     }
+    game["round_phase_config_overrides"] = {
+        entry["round"]: entry["phase_config"]
+        for entry in round_overrides
+        if "phase_config" in entry
+    }
+
+    # Ensure phase_config defaults to empty dict
+    game.setdefault("phase_config", {})
 
     return game
 
