@@ -1,0 +1,16 @@
+# 3-player config using Claude Sonnet 4.5
+
+[[players]]
+player_id = "A"
+model = "anthropic/claude-sonnet-4.5"
+character_prompt = "You are player A."
+
+[[players]]
+player_id = "B"
+model = "anthropic/claude-sonnet-4.5"
+character_prompt = "You are player B."
+
+[[players]]
+player_id = "C"
+model = "anthropic/claude-sonnet-4.5"
+character_prompt = "You are player C."
