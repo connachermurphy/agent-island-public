@@ -66,9 +66,9 @@ def phase_sidebars(
 
         llm_instructions = (
             "Your choice must be of the following format: "
-            "'<vote>PLAYER ID</vote>'.\n\n"
-            "Example: '<vote>X</vote>' is valid, but "
-            "'<vote>[X]</vote>' and '<vote>XY</vote>' are "
+            "'<choice>PLAYER ID</choice>'.\n\n"
+            "Example: '<choice>X</choice>' is valid, but "
+            "'<choice>[X]</choice>' and '<choice>XY</choice>' are "
             "not. Here, we assume X and Y are player IDs."
         )
 

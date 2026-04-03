@@ -216,7 +216,7 @@ def build_outputs(
     if stats:
         player_id_set |= set(stats.get("cost", {}).get("by_player", {}).keys())
         player_id_set |= set(
-            stats.get("vote_parse_failures", {}).get("by_player", {}).keys()
+            stats.get("choice_parse_failures", {}).get("by_player", {}).keys()
         )
         player_id_set |= set(
             stats.get("reasoning_extraction_failures", {}).get("by_player", {}).keys()
@@ -226,7 +226,7 @@ def build_outputs(
 
     # Combined stats table: rendered only when --include-usage is set.
     if stats and include_usage:
-        vpf = stats.get("vote_parse_failures", {})
+        vpf = stats.get("choice_parse_failures", {})
         ref = stats.get("reasoning_extraction_failures", {})
         rsp = stats.get("responses", {})
         vpf_by_player = vpf.get("by_player", {})

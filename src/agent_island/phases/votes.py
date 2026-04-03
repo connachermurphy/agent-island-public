@@ -75,10 +75,10 @@ def phase_votes(context: RoundContext) -> None:
         )
 
         llm_instructions = """Your vote must be of the following format:
-'<vote>PLAYER ID</vote>', or it will be ignored.
+'<choice>PLAYER ID</choice>', or it will be ignored.
 
-Example: '<vote>X</vote>' is a valid vote, but
-'<vote>[X]</vote>' and '<vote>XY</vote>' are not.
+Example: '<choice>X</choice>' is a valid vote, but
+'<choice>[X]</choice>' and '<choice>XY</choice>' are not.
 Here, we assume X and Y are player IDs."""
 
         system_prompt = f"""

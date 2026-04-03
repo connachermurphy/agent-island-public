@@ -263,7 +263,7 @@ class GameEngine:
         Compute game statistics from the event history.
 
         All metrics are derived post-hoc from event data:
-          - vote_parse_failures: events flagged with metadata["vote_parse_failed"]
+          - choice_parse_failures: events flagged with metadata["choice_parse_failed"]
           - reasoning_extraction_failures: non-narrator AI player events with
             reasoning=None
           - responses: number of non-narrator model responses per player
@@ -271,7 +271,7 @@ class GameEngine:
           - usage: token counts and cost_retrieval_failures per player
 
         Returns:
-            dict with vote_parse_failures, reasoning_extraction_failures,
+            dict with choice_parse_failures, reasoning_extraction_failures,
             responses, cost, usage
         """
         vpf_by_player: dict[str, int] = {}
@@ -294,7 +294,7 @@ class GameEngine:
                     responses_by_player.get(player_id, 0) + 1
                 )
 
-                if meta.get("vote_parse_failed"):
+                if meta.get("choice_parse_failed"):
                     vpf_by_player[player_id] = vpf_by_player.get(player_id, 0) + 1
 
                 if event.reasoning is None and player_id not in human_player_ids:
@@ -326,7 +326,7 @@ class GameEngine:
             return sum(p.get(key, 0) for p in usage_by_player.values())
 
         return {
-            "vote_parse_failures": {
+            "choice_parse_failures": {
                 "total": sum(vpf_by_player.values()),
                 "by_player": vpf_by_player,
             },

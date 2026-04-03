@@ -1,6 +1,6 @@
 # Player configuration for testing vote parse failure handling.
 # Player A's character prompt instructs them to use an invalid vote format,
-# which will trigger vote_parse_failed metadata flags and WARNING log lines.
+# which will trigger choice_parse_failed metadata flags and WARNING log lines.
 
 [[players]]
 player_id = "A"

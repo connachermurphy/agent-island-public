@@ -104,10 +104,10 @@ class AIPlayer(Player):
         llm_instructions: str = "",
     ) -> ChoiceResponse:
         result = self._respond(system_prompt, context, action, llm_instructions)
-        selected = self._extract_vote(result.text, options)
+        selected = self._extract_choice(result.text, options)
         metadata = dict(result.metadata) if result.metadata else {}
         if selected is None:
-            metadata["vote_parse_failed"] = True
+            metadata["choice_parse_failed"] = True
         return ChoiceResponse(
             selected=selected,
             text=result.text,
@@ -164,12 +164,12 @@ class AIPlayer(Player):
                     )
         raise last_exc  # type: ignore[misc]
 
-    def _extract_vote(self, content: str, valid_player_ids: list[str]) -> Optional[str]:
-        match = re.search(r"<vote>(.*?)</vote>", content, re.IGNORECASE | re.DOTALL)
+    def _extract_choice(self, content: str, valid_player_ids: list[str]) -> Optional[str]:
+        match = re.search(r"<choice>(.*?)</choice>", content, re.IGNORECASE | re.DOTALL)
         if match:
-            vote = match.group(1).strip()
-            if vote in valid_player_ids and vote != self.config.player_id:
-                return vote
+            choice = match.group(1).strip()
+            if choice in valid_player_ids and choice != self.config.player_id:
+                return choice
         return None
 
 
