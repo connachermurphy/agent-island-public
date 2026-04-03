@@ -1,15 +1,15 @@
-# Game config for testing the sidebars phase.
-# Pair with examples/player_config.toml.
-# Round 1 includes sidebars before pitches.
+# Game config for testing per-round phase config overrides.
+# Pair with a 5-player config.
+# Round 3 (penultimate) has longer sidebar conversations.
 
 [game]
-num_players = 3
-num_rounds = 2
+num_players = 5
+num_rounds = 4
 phases = ["sidebars", "pitches", "votes", "consolidate_memory"]
 logs_dir = "logs"
 rules_prompt = """
-You are a player in a game with 3 players.
-In round 1, you will first have a private sidebar
+You are a player in a game with 5 players.
+Each round, you will first have a private sidebar
 conversation with another player of your choosing.
 Sidebar conversations are private and can only be
 seen by the two participants. After sidebars, you
@@ -20,10 +20,11 @@ one other player. The player with the most votes is
 eliminated. You will be notified explicitly when it
 is your turn to vote.
 
-In round 2, you will make a pitch for why you should
-win the game. The previously eliminated players will
-choose the winner. The player with the most votes
-wins the game.
+In the final round, the remaining players will make
+a pitch for why they should win the game. The
+previously eliminated players will choose the
+winner. The player with the most votes wins the
+game.
 
 You will speak in a random order. You can reference
 anything in your pitches and votes, including
@@ -40,7 +41,16 @@ rounds.
 num_exchanges = 1
 messages_per_exchange = 2
 
+# Penultimate round: longer sidebar conversations
+[[game.round_overrides]]
+round = 3
+phases = ["sidebars", "pitches", "votes", "consolidate_memory"]
+
+[game.round_overrides.phase_config.sidebars]
+num_exchanges = 2
+messages_per_exchange = 4
+
 # Final round: no sidebars or memory consolidation
 [[game.round_overrides]]
-round = 2
+round = 4
 phases = ["pitches", "votes"]
