@@ -248,7 +248,7 @@ def build_outputs(
         col_headers = [
             "Model responses",
             "Reasoning extraction failures",
-            "Vote parse failures",
+            "Choice parse failures",
             "Cost retrieval failures",
             "Cost (USD)",
             "Input tokens",

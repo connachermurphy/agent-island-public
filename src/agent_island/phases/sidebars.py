@@ -36,8 +36,10 @@ def phase_sidebars(
             "It is time for sidebar conversations. "
             "Each player will choose one other player for a "
             "private 1-on-1 conversation. "
-            f"There will be {num_exchanges} exchange(s), each "
-            f"consisting of {messages_per_exchange} message(s)."
+            f"There will be {num_exchanges} "
+            f"{'exchange' if num_exchanges == 1 else 'exchanges'}, "
+            f"each consisting of {messages_per_exchange} "
+            f"{'message' if messages_per_exchange == 1 else 'messages'}."
         ),
         visibility=context.history.player_ids,
         active_visibility=context.history.player_ids.copy(),
