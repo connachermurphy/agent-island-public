@@ -73,6 +73,11 @@ section.round {
   background: #f4f4f4;
 }
 
+.sidebar-event {
+  border-left: 4px solid #9b59b6;
+  background: #faf5fc;
+}
+
 .event-heading {
   font-weight: 600;
   margin-bottom: 0.35rem;
@@ -128,8 +133,7 @@ pre {
 }
 
 /* ── Game Stats & Usage Summary ── */
-section.game-stats,
-section.usage-summary {
+section.game-stats {
   border: 1.5px solid #c0c0c0;
   border-radius: 6px;
   padding: 1rem 1.25rem;
