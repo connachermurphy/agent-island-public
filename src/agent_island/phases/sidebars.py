@@ -138,7 +138,7 @@ def _run_sidebar(
 
     context.history.narrate(
         round_index=context.round_index,
-        heading=f"Sidebar: {initiator_id} & {target_id}",
+        heading=f"Sidebar between {initiator_id} & {target_id}",
         content=(
             f"Player {initiator_id} has initiated a private "
             f"sidebar conversation with Player {target_id}."
