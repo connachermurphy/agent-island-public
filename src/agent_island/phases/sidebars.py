@@ -168,12 +168,26 @@ def _run_sidebar(
                 f"{memory_context}\n\n{visible_events}"
             )
 
+        is_last = msg_idx == messages_per_exchange - 1
+        if is_last:
+            message_note = (
+                f"This is your final message "
+                f"({msg_idx + 1}/{messages_per_exchange}). "
+                f"No more messages will be sent after this."
+            )
+        else:
+            message_note = (
+                f"This is message "
+                f"{msg_idx + 1}/{messages_per_exchange}."
+            )
+
         action = (
             f"You are in a private sidebar conversation "
-            f"with Player {listener_id} "
-            f"(message {msg_idx + 1}/{messages_per_exchange}). "
+            f"with Player {listener_id}. "
             f"Only you and Player {listener_id} can see "
-            f"this conversation. Say what you'd like."
+            f"this conversation. "
+            f"{message_note} "
+            f"Please send a message."
         )
 
         system_prompt = f"""
@@ -185,12 +199,12 @@ def _run_sidebar(
 """
 
         context.logger.info(
-            "Sidebar %s & %s: message %d/%d (%s)",
+            "Sidebar between %s & %s: Player %s's message (%d/%d)",
             initiator_id,
             target_id,
+            speaker_id,
             msg_idx + 1,
             messages_per_exchange,
-            speaker_id,
         )
 
         response = player.free_response(
@@ -202,8 +216,8 @@ def _run_sidebar(
         context.history.add_event(
             round_index=context.round_index,
             heading=(
-                f"Sidebar {initiator_id} & {target_id}: "
-                f"{speaker_id}"
+                f"Sidebar between {initiator_id} & {target_id}. "
+                f"Player {speaker_id}'s message"
             ),
             role=f"player {speaker_id}",
             prompt=(
