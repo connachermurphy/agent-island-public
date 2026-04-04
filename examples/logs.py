@@ -61,7 +61,13 @@ def render_html_event(
     heading, role, prompt, reasoning, content, visibility = parse_event(event)
 
     is_narrator = role == "narrator"
-    event_class = "event narrator-event" if is_narrator else "event player-event"
+    is_sidebar = "Sidebar" in heading and not is_narrator
+    if is_narrator:
+        event_class = "event narrator-event"
+    elif is_sidebar:
+        event_class = "event player-event sidebar-event"
+    else:
+        event_class = "event player-event"
 
     parts = [f'<div class="{event_class}">']
     parts.append(f'  <div class="event-heading">{html.escape(heading)}</div>')
