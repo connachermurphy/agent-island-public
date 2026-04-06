@@ -61,7 +61,13 @@ def render_html_event(
     heading, role, prompt, reasoning, content, visibility = parse_event(event)
 
     is_narrator = role == "narrator"
-    event_class = "event narrator-event" if is_narrator else "event player-event"
+    is_sidebar = "Sidebar" in heading and not is_narrator
+    if is_narrator:
+        event_class = "event narrator-event"
+    elif is_sidebar:
+        event_class = "event player-event sidebar-event"
+    else:
+        event_class = "event player-event"
 
     parts = [f'<div class="{event_class}">']
     parts.append(f'  <div class="event-heading">{html.escape(heading)}</div>')
@@ -216,7 +222,7 @@ def build_outputs(
     if stats:
         player_id_set |= set(stats.get("cost", {}).get("by_player", {}).keys())
         player_id_set |= set(
-            stats.get("vote_parse_failures", {}).get("by_player", {}).keys()
+            stats.get("choice_parse_failures", {}).get("by_player", {}).keys()
         )
         player_id_set |= set(
             stats.get("reasoning_extraction_failures", {}).get("by_player", {}).keys()
@@ -226,7 +232,7 @@ def build_outputs(
 
     # Combined stats table: rendered only when --include-usage is set.
     if stats and include_usage:
-        vpf = stats.get("vote_parse_failures", {})
+        vpf = stats.get("choice_parse_failures", {})
         ref = stats.get("reasoning_extraction_failures", {})
         rsp = stats.get("responses", {})
         vpf_by_player = vpf.get("by_player", {})
@@ -242,7 +248,7 @@ def build_outputs(
         col_headers = [
             "Model responses",
             "Reasoning extraction failures",
-            "Vote parse failures",
+            "Choice parse failures",
             "Cost retrieval failures",
             "Cost (USD)",
             "Input tokens",

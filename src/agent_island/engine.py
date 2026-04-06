@@ -5,6 +5,7 @@ import random
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
+from functools import partial
 from typing import Callable, List
 
 from .history import History
@@ -25,6 +26,8 @@ class GameConfig:
         logs_dir: Directory to save logs (None to skip logging)
         rules_prompt: Prompt with the rules of the game
         round_phase_overrides: Per-round phase overrides keyed by round number
+        phase_config: Default per-phase config keyed by phase name
+        round_phase_config_overrides: Per-round phase config overrides
         log_prefix: Optional prefix for log filenames (default: "gameplay")
         game_id: Optional game ID for reproducibility
     """
@@ -35,6 +38,10 @@ class GameConfig:
     rules_prompt: str
     logs_dir: str | None = field(default=None)
     round_phase_overrides: dict[int, list[str]] = field(default_factory=dict)
+    phase_config: dict[str, dict] = field(default_factory=dict)
+    round_phase_config_overrides: dict[int, dict[str, dict]] = field(
+        default_factory=dict
+    )
     log_prefix: str = field(default="gameplay")
     game_id: str | None = field(default=None)
 
@@ -106,7 +113,10 @@ class GameEngine:
         """
         Get the phase callables for a given round.
 
-        Uses round-specific overrides if configured, otherwise the default phases.
+        Uses round-specific overrides if configured, otherwise the default
+        phases. When a phase has per-phase config (from ``phase_config`` or
+        ``round_phase_config_overrides``), the callable is wrapped with
+        ``functools.partial``.
 
         Args:
             round_index: 1-indexed round number
@@ -117,7 +127,18 @@ class GameEngine:
         phase_names = self.game_config.round_phase_overrides.get(
             round_index, self.game_config.phases
         )
-        return [PHASE_REGISTRY[name] for name in phase_names]
+
+        # Merge game-level and round-level phase config
+        round_pc = self.game_config.round_phase_config_overrides.get(round_index, {})
+        merged_pc = {**self.game_config.phase_config, **round_pc}
+
+        phases: List[Callable] = []
+        for name in phase_names:
+            fn = PHASE_REGISTRY[name]
+            if name in merged_pc:
+                fn = partial(fn, **merged_pc[name])
+            phases.append(fn)
+        return phases
 
     def _create_round_context(
         self,
@@ -240,7 +261,7 @@ class GameEngine:
         Compute game statistics from the event history.
 
         All metrics are derived post-hoc from event data:
-          - vote_parse_failures: events flagged with metadata["vote_parse_failed"]
+          - choice_parse_failures: events flagged with metadata["choice_parse_failed"]
           - reasoning_extraction_failures: non-narrator AI player events with
             reasoning=None
           - responses: number of non-narrator model responses per player
@@ -248,7 +269,7 @@ class GameEngine:
           - usage: token counts and cost_retrieval_failures per player
 
         Returns:
-            dict with vote_parse_failures, reasoning_extraction_failures,
+            dict with choice_parse_failures, reasoning_extraction_failures,
             responses, cost, usage
         """
         vpf_by_player: dict[str, int] = {}
@@ -271,7 +292,7 @@ class GameEngine:
                     responses_by_player.get(player_id, 0) + 1
                 )
 
-                if meta.get("vote_parse_failed"):
+                if meta.get("choice_parse_failed"):
                     vpf_by_player[player_id] = vpf_by_player.get(player_id, 0) + 1
 
                 if event.reasoning is None and player_id not in human_player_ids:
@@ -303,7 +324,7 @@ class GameEngine:
             return sum(p.get(key, 0) for p in usage_by_player.values())
 
         return {
-            "vote_parse_failures": {
+            "choice_parse_failures": {
                 "total": sum(vpf_by_player.values()),
                 "by_player": vpf_by_player,
             },
@@ -357,6 +378,13 @@ class GameEngine:
                     "round_phase_overrides": {
                         str(k): v
                         for k, v in self.game_config.round_phase_overrides.items()
+                    },
+                    "phase_config": self.game_config.phase_config,
+                    "round_phase_config_overrides": {
+                        str(k): v
+                        for k, v in (
+                            self.game_config.round_phase_config_overrides.items()
+                        )
                     },
                     "rules_prompt": self.game_config.rules_prompt,
                     "status": status,
