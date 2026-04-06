@@ -173,7 +173,7 @@ def _run_sidebar(
         is_last = msg_idx == messages_per_exchange - 1
         if is_last:
             message_note = (
-                f"This is your final message "
+                f"This is the final message "
                 f"({msg_idx + 1}/{messages_per_exchange}). "
                 f"No more messages will be sent after this."
             )
