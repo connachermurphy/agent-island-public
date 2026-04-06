@@ -47,14 +47,9 @@ def phase_sidebars(
 
     for exchange in range(num_exchanges):
         for player_id in permute_player_ids(active):
-            player = next(
-                p for p in context.players
-                if p.config.player_id == player_id
-            )
+            player = next(p for p in context.players if p.config.player_id == player_id)
 
-            candidates = permute_player_ids(
-                [pid for pid in active if pid != player_id]
-            )
+            candidates = permute_player_ids([pid for pid in active if pid != player_id])
 
             memory_context = player.memory.render()
             visible_events = context.history.render_for_player(player_id)
@@ -83,8 +78,7 @@ def phase_sidebars(
 """
 
             context.logger.info(
-                "Player %s is choosing a sidebar partner "
-                "(exchange %d/%d)",
+                "Player %s is choosing a sidebar partner (exchange %d/%d)",
                 player_id,
                 exchange + 1,
                 num_exchanges,
@@ -156,19 +150,12 @@ def _run_sidebar(
         speaker_id = speakers[msg_idx % 2]
         listener_id = speakers[(msg_idx + 1) % 2]
 
-        player = next(
-            p for p in context.players
-            if p.config.player_id == speaker_id
-        )
+        player = next(p for p in context.players if p.config.player_id == speaker_id)
 
         memory_context = player.memory.render()
-        visible_events = context.history.render_for_player(
-            speaker_id
-        )
+        visible_events = context.history.render_for_player(speaker_id)
         if memory_context:
-            visible_events = (
-                f"{memory_context}\n\n{visible_events}"
-            )
+            visible_events = f"{memory_context}\n\n{visible_events}"
 
         is_last = msg_idx == messages_per_exchange - 1
         if is_last:
@@ -178,10 +165,7 @@ def _run_sidebar(
                 f"No more messages will be sent after this."
             )
         else:
-            message_note = (
-                f"This is message "
-                f"{msg_idx + 1}/{messages_per_exchange}."
-            )
+            message_note = f"This is message {msg_idx + 1}/{messages_per_exchange}."
 
         action = (
             f"You are in a private sidebar conversation "
@@ -222,10 +206,7 @@ def _run_sidebar(
                 f"Player {speaker_id}'s message"
             ),
             role=f"player {speaker_id}",
-            prompt=(
-                f"{system_prompt}\n\n{visible_events}"
-                f"\n\n{action}"
-            ),
+            prompt=(f"{system_prompt}\n\n{visible_events}\n\n{action}"),
             content=response.text,
             reasoning=response.reasoning,
             metadata=response.metadata,

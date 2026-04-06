@@ -80,9 +80,10 @@ class Round:
         )
 
         for phase in self.phases:
-            name = getattr(phase, "__name__", None) or getattr(
-                phase, "func", phase
-            ).__name__
+            name = (
+                getattr(phase, "__name__", None)
+                or getattr(phase, "func", phase).__name__
+            )
             self.context.logger.info(f"Starting {name}")
             phase(self.context)
 

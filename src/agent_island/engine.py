@@ -129,9 +129,7 @@ class GameEngine:
         )
 
         # Merge game-level and round-level phase config
-        round_pc = self.game_config.round_phase_config_overrides.get(
-            round_index, {}
-        )
+        round_pc = self.game_config.round_phase_config_overrides.get(round_index, {})
         merged_pc = {**self.game_config.phase_config, **round_pc}
 
         phases: List[Callable] = []
