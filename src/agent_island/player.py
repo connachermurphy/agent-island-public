@@ -164,7 +164,9 @@ class AIPlayer(Player):
                     )
         raise last_exc  # type: ignore[misc]
 
-    def _extract_choice(self, content: str, valid_player_ids: list[str]) -> Optional[str]:
+    def _extract_choice(
+        self, content: str, valid_player_ids: list[str]
+    ) -> Optional[str]:
         match = re.search(r"<choice>(.*?)</choice>", content, re.IGNORECASE | re.DOTALL)
         if match:
             choice = match.group(1).strip()
