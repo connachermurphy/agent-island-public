@@ -5,7 +5,7 @@
 [game]
 num_players = 3
 num_rounds = 2
-phases = ["pitches", "votes", "consolidate_memory"]
+phases = ["pitches", "votes", "elimination", "consolidate_memory"]
 logs_dir = "logs"
 rules_prompt = """
 You are a player in a game with 3 players.

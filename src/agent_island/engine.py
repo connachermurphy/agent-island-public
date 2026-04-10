@@ -80,11 +80,17 @@ class GameEngine:
         if cfg.num_rounds < 1:
             raise ValueError(f"num_rounds must be >= 1, got {cfg.num_rounds}")
 
-        # TODO: Relax this constraint when non-elimination rounds are added
-        if cfg.num_rounds > cfg.num_players - 1:
+        # Count how many rounds include the elimination phase
+        elimination_rounds = 0
+        for round_idx in range(1, cfg.num_rounds + 1):
+            phase_names = cfg.round_phase_overrides.get(round_idx, cfg.phases)
+            if "elimination" in phase_names:
+                elimination_rounds += 1
+
+        if elimination_rounds > cfg.num_players - 1:
             raise ValueError(
-                f"num_rounds ({cfg.num_rounds}) must be <= num_players - 1 "
-                f"({cfg.num_players - 1})"
+                f"Number of rounds with elimination ({elimination_rounds}) "
+                f"must be <= num_players - 1 ({cfg.num_players - 1})"
             )
 
         # Validate default phase names
@@ -231,20 +237,17 @@ class GameEngine:
                 )
                 round.play()
 
-                self.logger.debug(f"Vote tally: {round_context.votes['vote_tally']}")
+                if round_context.votes:
+                    self.logger.debug(
+                        f"Vote tally: {round_context.votes.get('vote_tally')}"
+                    )
+                    selected = round_context.votes.get("selected_player")
+                    self.logger.debug(f"{outcome} player: {selected}")
 
-                self.logger.debug(
-                    f"{outcome} player: {round_context.votes['selected_player']}"
-                )
-
-                # Remove eliminated player from active player IDs
-                if not final_round:
-                    active_player_ids = [
-                        pid
-                        for pid in active_player_ids
-                        if pid != round_context.votes["selected_player"]
-                    ]
-                    self.logger.debug(f"Next round players: {active_player_ids}")
+                # Sync active player IDs from the round context
+                # (the elimination phase may have modified it)
+                active_player_ids = list(round_context.active_player_ids)
+                self.logger.debug(f"Next round players: {active_player_ids}")
 
         except Exception as exc:
             self.logger.error("Game %s failed: %s", game_id, exc)
