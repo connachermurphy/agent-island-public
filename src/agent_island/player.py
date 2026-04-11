@@ -79,10 +79,15 @@ class Player(ABC):
 
 
 class AIPlayer(Player):
-    def __init__(self, config: PlayerConfig, max_retries: int = 3):
+    def __init__(
+        self,
+        config: PlayerConfig,
+        max_retries: int = 3,
+        timeout_ms: int = 600_000,
+    ):
         self.config = config
         self.max_retries = max_retries
-        self.client = OpenRouter(api_key=config.api_key)
+        self.client = OpenRouter(api_key=config.api_key, timeout_ms=timeout_ms)
         self.memory: MemoryStrategy = create_strategy(config.memory_strategy)
 
     def free_response(
