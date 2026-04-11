@@ -16,7 +16,7 @@ memory_strategy = "summarization"
 
 [[players]]
 player_id = "C"
-model = "google/gemini-3-pro-preview"
+model = "google/gemini-2.5-pro"
 character_prompt = "You are player C."
 memory_strategy = "summarization"
 

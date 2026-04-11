@@ -6,7 +6,7 @@
 [[players]]
 player_id = "A"
 player_type = "ai"
-model = "google/gemini-3-flash-preview"
+model = "google/gemini-2.5-flash"
 character_prompt = "You are player A."
 
 [[players]]
