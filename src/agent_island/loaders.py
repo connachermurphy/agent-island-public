@@ -30,6 +30,11 @@ def load_game_config_from_toml(config_path: pathlib.Path) -> dict:
     game["round_phase_overrides"] = {
         entry["round"]: entry["phases"] for entry in round_overrides
     }
+    game["round_type_overrides"] = {
+        entry["round"]: entry["round_type"]
+        for entry in round_overrides
+        if "round_type" in entry
+    }
     game["round_phase_config_overrides"] = {
         entry["round"]: entry["phase_config"]
         for entry in round_overrides
@@ -38,6 +43,7 @@ def load_game_config_from_toml(config_path: pathlib.Path) -> dict:
 
     # Ensure phase_config defaults to empty dict
     game.setdefault("phase_config", {})
+    game.setdefault("round_type", "elimination")
 
     return game
 

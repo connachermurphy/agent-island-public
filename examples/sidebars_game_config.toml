@@ -40,7 +40,8 @@ rounds.
 num_exchanges = 1
 messages_per_exchange = 2
 
-# Final round: no sidebars or memory consolidation
+# Final round: winner vote, no sidebars or memory consolidation
 [[game.round_overrides]]
 round = 2
 phases = ["pitches", "votes"]
+round_type = "final"

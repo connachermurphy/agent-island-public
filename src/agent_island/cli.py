@@ -84,6 +84,8 @@ def main() -> None:
         logs_dir=game_data.get("logs_dir", LOGS_DIR) or None,
         rules_prompt=game_data["rules_prompt"],
         round_phase_overrides=game_data.get("round_phase_overrides", {}),
+        round_type=game_data.get("round_type", "elimination"),
+        round_type_overrides=game_data.get("round_type_overrides", {}),
         phase_config=game_data.get("phase_config", {}),
         round_phase_config_overrides=game_data.get("round_phase_config_overrides", {}),
         log_prefix=game_data.get("log_prefix", "gameplay"),

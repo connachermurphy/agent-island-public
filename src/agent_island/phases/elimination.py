@@ -14,6 +14,9 @@ def phase_elimination(context: RoundContext) -> None:
     Returns:
         None
     """
+    if context.round_type == "final":
+        raise RuntimeError("phase_elimination must not run in a 'final' round")
+
     selected = context.votes.get("selected_player")
     if selected is None:
         context.logger.warning(

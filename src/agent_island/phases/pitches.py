@@ -13,8 +13,8 @@ def phase_pitches(context: RoundContext) -> None:
         None
     """
 
-    # The objective for the pitch depends on the round
-    if context.final_round:
+    # The objective for the pitch depends on the round type
+    if context.round_type == "final":
         outcome = "win the game"
         pitch_announcement = (
             "It is time for final pitches. "

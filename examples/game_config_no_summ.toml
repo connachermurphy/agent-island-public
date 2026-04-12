@@ -26,3 +26,9 @@ conversations, or events that did not occur. Do not
 simulate or predict the outcome of votes or future
 rounds.
 """
+
+# Final round: winner vote, no elimination
+[[game.round_overrides]]
+round = 2
+phases = ["pitches", "votes"]
+round_type = "final"
