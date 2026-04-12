@@ -105,14 +105,19 @@ def phase_sidebars(
             metadata = dict(response.metadata) if response.metadata else {}
             metadata["sidebar_selection"] = response.selected
 
+            if player.config.player_type == "human":
+                prompt = action
+            else:
+                prompt = (
+                    f"{system_prompt}\n\n{visible_events}"
+                    f"\n\n{action}\n\n{llm_instructions}"
+                )
+
             context.history.add_event(
                 round_index=context.round_index,
                 heading=f"Player {player_id}'s Sidebar Selection",
                 role=f"player {player_id}",
-                prompt=(
-                    f"{system_prompt}\n\n{visible_events}"
-                    f"\n\n{action}\n\n{llm_instructions}"
-                ),
+                prompt=prompt,
                 content=response.text,
                 reasoning=response.reasoning,
                 metadata=metadata or None,
@@ -209,6 +214,11 @@ def _run_sidebar(
             action=action,
         )
 
+        if player.config.player_type == "human":
+            prompt = action
+        else:
+            prompt = f"{system_prompt}\n\n{visible_events}\n\n{action}"
+
         context.history.add_event(
             round_index=context.round_index,
             heading=(
@@ -216,7 +226,7 @@ def _run_sidebar(
                 f"Player {speaker_id}'s message"
             ),
             role=f"player {speaker_id}",
-            prompt=(f"{system_prompt}\n\n{visible_events}\n\n{action}"),
+            prompt=prompt,
             content=response.text,
             reasoning=response.reasoning,
             metadata=response.metadata,

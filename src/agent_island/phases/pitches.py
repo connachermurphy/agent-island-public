@@ -69,11 +69,16 @@ def phase_pitches(context: RoundContext) -> None:
             action=action,
         )
 
+        if player.config.player_type == "human":
+            prompt = action
+        else:
+            prompt = f"{system_prompt}\n\n{visible_events}\n\n{action}"
+
         context.history.add_event(
             round_index=context.round_index,
             heading=f"Player {player.config.player_id}'s Pitch",
             role=f"player {player.config.player_id}",
-            prompt=f"{system_prompt}\n\n{visible_events}\n\n{action}",
+            prompt=prompt,
             content=response.text,
             reasoning=response.reasoning,
             metadata=response.metadata,
