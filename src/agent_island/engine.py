@@ -26,6 +26,8 @@ class GameConfig:
         logs_dir: Directory to save logs (None to skip logging)
         rules_prompt: Prompt with the rules of the game
         round_phase_overrides: Per-round phase overrides keyed by round number
+        round_type: Default round type ("elimination" or "final")
+        round_type_overrides: Per-round round_type overrides keyed by round number
         phase_config: Default per-phase config keyed by phase name
         round_phase_config_overrides: Per-round phase config overrides
         log_prefix: Optional prefix for log filenames (default: "gameplay")
@@ -38,6 +40,8 @@ class GameConfig:
     rules_prompt: str
     logs_dir: str | None = field(default=None)
     round_phase_overrides: dict[int, list[str]] = field(default_factory=dict)
+    round_type: str = field(default="elimination")
+    round_type_overrides: dict[int, str] = field(default_factory=dict)
     phase_config: dict[str, dict] = field(default_factory=dict)
     round_phase_config_overrides: dict[int, dict[str, dict]] = field(
         default_factory=dict
@@ -146,6 +150,12 @@ class GameEngine:
             phases.append(fn)
         return phases
 
+    def _get_round_type(self, round_index: int) -> str:
+        """Get the round type for a given round (override or default)."""
+        return self.game_config.round_type_overrides.get(
+            round_index, self.game_config.round_type
+        )
+
     def _create_round_context(
         self,
         round_index: int,
@@ -178,6 +188,7 @@ class GameEngine:
         return RoundContext(
             round_index=round_index,
             final_round=final_round,
+            round_type=self._get_round_type(round_index),
             players=players,
             active_player_ids=active_player_ids,
             eliminated_player_ids=eliminated_player_ids,
@@ -217,7 +228,6 @@ class GameEngine:
         try:
             for round_index in range(1, num_rounds + 1):
                 final_round = round_index == num_rounds
-                outcome = "Winning" if final_round else "Eliminated"
 
                 self.logger.info(f"Round {round_index}")
 
@@ -241,8 +251,9 @@ class GameEngine:
                     self.logger.debug(
                         f"Vote tally: {round_context.votes.get('vote_tally')}"
                     )
-                    selected = round_context.votes.get("selected_player")
-                    self.logger.debug(f"{outcome} player: {selected}")
+                    self.logger.debug(
+                        f"Selected player: {round_context.votes.get('selected_player')}"
+                    )
 
                 # Sync active player IDs from the round context
                 # (the elimination phase may have modified it)
@@ -381,6 +392,11 @@ class GameEngine:
                     "round_phase_overrides": {
                         str(k): v
                         for k, v in self.game_config.round_phase_overrides.items()
+                    },
+                    "round_type": self.game_config.round_type,
+                    "round_type_overrides": {
+                        str(k): v
+                        for k, v in self.game_config.round_type_overrides.items()
                     },
                     "phase_config": self.game_config.phase_config,
                     "round_phase_config_overrides": {

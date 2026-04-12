@@ -31,7 +31,8 @@ simulate or predict the outcome of votes or future
 rounds.
 """
 
-# Skip memory consolidation in the final round; add quips after votes
+# Final round: winner vote with quips, no elimination or memory consolidation
 [[game.round_overrides]]
 round = 2
 phases = ["pitches", "votes", "opponent_quips"]
+round_type = "final"

@@ -28,7 +28,8 @@ simulate or predict the outcome of votes or future
 rounds.
 """
 
-# Skip memory consolidation in the final round
+# Final round: winner vote, no elimination or memory consolidation
 [[game.round_overrides]]
 round = 4
 phases = ["pitches", "votes"]
+round_type = "final"

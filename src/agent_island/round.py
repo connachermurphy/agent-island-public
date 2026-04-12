@@ -14,6 +14,7 @@ class RoundContext:
     Args:
         round_index: The index of the round
         final_round: Whether this is the final round
+        round_type: The type of round ("elimination" or "final")
         players: List of Player objects
         active_player_ids: List of active player IDs
         eliminated_player_ids: List of eliminated player IDs
@@ -25,6 +26,7 @@ class RoundContext:
 
     round_index: int
     final_round: bool
+    round_type: str
     players: List[Player]
     active_player_ids: List[str]
     eliminated_player_ids: List[str]

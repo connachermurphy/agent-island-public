@@ -17,8 +17,8 @@ def phase_votes(context: RoundContext) -> None:
     # Initialize the vote tally
     vote_tally: dict[str, int] = {}
 
-    # The outcome for the vote depends on the round
-    if context.final_round:
+    # The outcome for the vote depends on the round type
+    if context.round_type == "final":
         outcome_verb = "wins"
         vote_instruction = "Vote for one player to win."
         voters = context.eliminated_player_ids
