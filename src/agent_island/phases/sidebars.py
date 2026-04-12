@@ -29,17 +29,27 @@ def phase_sidebars(
         context.logger.info("Not enough active players for sidebars")
         return
 
+    if num_exchanges == 1:
+        exchange_text = (
+            "Each player will initiate one private conversation, "
+            f"consisting of {messages_per_exchange} "
+            f"{'message' if messages_per_exchange == 1 else 'messages'}."
+        )
+    else:
+        exchange_text = (
+            f"There will be {num_exchanges} exchanges. "
+            "Each exchange, every player will initiate a private conversation, "
+            f"consisting of {messages_per_exchange} "
+            f"{'message' if messages_per_exchange == 1 else 'messages'}."
+        )
+
     context.history.narrate(
         round_index=context.round_index,
         heading=f"Round {context.round_index} Sidebars",
         content=(
             "It is time for sidebar conversations. "
             "Each player will choose one other player for a "
-            "private 1-on-1 conversation. "
-            f"There will be {num_exchanges} "
-            f"{'exchange' if num_exchanges == 1 else 'exchanges'}, "
-            f"each consisting of {messages_per_exchange} "
-            f"{'message' if messages_per_exchange == 1 else 'messages'}."
+            f"private 1-on-1 conversation. {exchange_text}"
         ),
         visibility=context.history.player_ids,
         active_visibility=context.history.player_ids.copy(),
