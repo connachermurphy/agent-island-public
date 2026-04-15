@@ -151,9 +151,10 @@ class AIPlayer(Player):
                 if attempt < self.max_retries:
                     wait = 2**attempt  # 1s, 2s, 4s
                     logger.warning(
-                        "Request failed for player %s (attempt %d/%d): %s. "
-                        "Retrying in %ds.",
+                        "Request failed for player %s (model %s) "
+                        "(attempt %d/%d): %s. Retrying in %ds.",
                         self.config.player_id,
+                        self.config.model,
                         attempt + 1,
                         self.max_retries + 1,
                         exc,
@@ -162,12 +163,18 @@ class AIPlayer(Player):
                     time.sleep(wait)
                 else:
                     logger.error(
-                        "Request failed for player %s after %d attempt(s): %s",
+                        "Request failed for player %s (model %s) "
+                        "after %d attempt(s): %s",
                         self.config.player_id,
+                        self.config.model,
                         self.max_retries + 1,
                         exc,
                     )
-        raise last_exc  # type: ignore[misc]
+        raise RuntimeError(
+            f"Request failed for player {self.config.player_id} "
+            f"(model {self.config.model}) after {self.max_retries + 1} "
+            f"attempt(s): {last_exc}"
+        ) from last_exc
 
     def _extract_choice(
         self, content: str, valid_player_ids: list[str]
