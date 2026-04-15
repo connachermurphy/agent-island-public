@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List
 
 
@@ -26,6 +27,7 @@ class Event:
     active_visibility: List[str]
     reasoning: str | None = None
     metadata: Dict[str, Any] | None = None
+    timestamp: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -37,6 +39,7 @@ class Event:
             "active_visibility": self.active_visibility,
             "reasoning": self.reasoning,
             "metadata": self.metadata,
+            "timestamp": self.timestamp,
         }
 
 
@@ -153,6 +156,7 @@ class History:
             active_visibility=active_visibility,
             reasoning=reasoning,
             metadata=metadata,
+            timestamp=datetime.now(timezone.utc).isoformat(),
         )
         self.rounds[round_index].events.append(event)
         if self.on_event:
