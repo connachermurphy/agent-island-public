@@ -102,7 +102,7 @@ class SummarizationStrategy(MemoryStrategy):
             visible_events = f"{memory_context}\n\n{visible_events}"
 
         action = (
-            "Please briefly summarize the events of this round. "
+            "Please summarize the events of this round. "
             "This summary will be the only context on the events of this round "
             "that you will have in future rounds. "
             "Other players will not be able to see your summary."
