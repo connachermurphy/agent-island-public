@@ -22,6 +22,12 @@ Alternatively, install the CLI globally with `uv tool install .` and run `agent-
 
 **Prerequisite:** `OPENROUTER_API_KEY` must be set in your environment or a `.env` file.
 
+Game configuration may set `game_id` for a stable log identity and
+`random_seed` for reproducible speaking order and tie-breaks. If `random_seed`
+is omitted, `game_id` remains the seed for backward compatibility. Separate
+values let multiple games share matched random conditions without duplicate log
+IDs.
+
 ## Development
 
 ### Linting

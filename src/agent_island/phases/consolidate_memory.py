@@ -18,7 +18,7 @@ def phase_consolidate_memory(context: RoundContext) -> None:
     """
     all_player_ids = context.active_player_ids + context.eliminated_player_ids
 
-    for player_id in permute_player_ids(all_player_ids):
+    for player_id in permute_player_ids(all_player_ids, context.rng):
         player = next(
             player for player in context.players if player.config.player_id == player_id
         )

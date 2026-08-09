@@ -14,7 +14,7 @@ def phase_opponent_quips(context: RoundContext) -> None:
     play style. One event is emitted per quip for easy downstream filtering.
     """
 
-    for player_id in permute_player_ids(context.history.player_ids):
+    for player_id in permute_player_ids(context.history.player_ids, context.rng):
         player = next(
             player for player in context.players if player.config.player_id == player_id
         )

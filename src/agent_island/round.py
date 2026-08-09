@@ -1,4 +1,5 @@
 import logging
+import random
 from dataclasses import dataclass, field
 from typing import Any, Callable, List
 
@@ -21,6 +22,7 @@ class RoundContext:
         logger: Logger for the round
         history: History for the round
         rules_prompt: Prompt with the rules of the game
+        rng: Game-local random number generator
         votes: Dictionary of votes for the round
     """
 
@@ -33,6 +35,7 @@ class RoundContext:
     logger: logging.Logger
     history: History
     rules_prompt: str
+    rng: random.Random = field(default_factory=random.Random)
     votes: dict[str, Any] = field(default_factory=dict)
 
 

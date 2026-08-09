@@ -37,7 +37,7 @@ def phase_pitches(context: RoundContext) -> None:
     )
 
     # Permute the player IDs to avoid order effects
-    for player_id in permute_player_ids(context.active_player_ids):
+    for player_id in permute_player_ids(context.active_player_ids, context.rng):
         # Get the player object from the player ID
         player = next(
             player for player in context.players if player.config.player_id == player_id
