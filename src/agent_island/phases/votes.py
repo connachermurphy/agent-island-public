@@ -1,5 +1,3 @@
-import random
-
 from ..round import RoundContext
 from .common import permute_player_ids
 
@@ -50,7 +48,7 @@ def phase_votes(context: RoundContext) -> None:
     candidates = context.active_player_ids
 
     # Permute the player IDs to avoid order effects
-    for voter in permute_player_ids(voters):
+    for voter in permute_player_ids(voters, context.rng):
         # Get the player object from the voter ID
         player = next(
             player for player in context.players if player.config.player_id == voter
@@ -65,7 +63,9 @@ def phase_votes(context: RoundContext) -> None:
 
         # Permute candidates at the voter level to avoid order effects
         # Exclude the active voter from the candidates
-        candidates_for_voter = permute_player_ids([c for c in candidates if c != voter])
+        candidates_for_voter = permute_player_ids(
+            [c for c in candidates if c != voter], context.rng
+        )
 
         action = (
             f"{vote_instruction} You cannot vote for yourself. "
@@ -142,7 +142,7 @@ Here, we assume X and Y are player IDs."""
     # Find selected player
     if not vote_tally:
         # If no valid votes, randomly select a player
-        selected_player_id = random.choice(candidates)
+        selected_player_id = context.rng.choice(candidates)
         context.logger.info(
             f"No valid votes found. Randomly selecting Player {selected_player_id}"
         )
@@ -184,7 +184,7 @@ Here, we assume X and Y are player IDs."""
 
         # If there is a tie, randomly select a player from the tied players
         else:
-            selected_player_id = random.choice(tied_players)
+            selected_player_id = context.rng.choice(tied_players)
             context.logger.info(
                 f"Tie between {tied_players} with "
                 f"{max_votes} vote(s). Randomly selecting "

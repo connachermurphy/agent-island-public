@@ -31,7 +31,9 @@ class GameConfig:
         phase_config: Default per-phase config keyed by phase name
         round_phase_config_overrides: Per-round phase config overrides
         log_prefix: Optional prefix for log filenames (default: "gameplay")
-        game_id: Optional game ID for reproducibility
+        game_id: Optional unique game ID used for logs and, by default, randomness
+        random_seed: Optional game-local random seed. When omitted, game_id is used
+            for backward compatibility.
     """
 
     num_players: int
@@ -48,6 +50,7 @@ class GameConfig:
     )
     log_prefix: str = field(default="gameplay")
     game_id: str | None = field(default=None)
+    random_seed: int | str | None = field(default=None)
 
 
 class GameEngine:
@@ -70,6 +73,7 @@ class GameEngine:
         self.logger = logging.getLogger(__name__)
         self._validate_config()
         self.history = History(on_event=on_event)
+        self.rng = random.Random()
 
     def _validate_config(self) -> None:
         """Validate game config against player configs and phase registry."""
@@ -195,6 +199,7 @@ class GameEngine:
             logger=self.logger,
             history=self.history,
             rules_prompt=self.game_config.rules_prompt,
+            rng=self.rng,
         )
 
     def play(self) -> str | None:
@@ -211,8 +216,13 @@ class GameEngine:
         game_id = self.game_config.game_id or str(uuid.uuid4())
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        # Seed random draws from the game ID for partial reproducibility
-        random.seed(game_id)
+        # Preserve legacy behavior unless callers separate identity from randomness.
+        random_seed = (
+            self.game_config.random_seed
+            if self.game_config.random_seed is not None
+            else game_id
+        )
+        self.rng.seed(random_seed)
 
         # Log start of game
         self.logger.info(f"Starting game {game_id} ({timestamp})")
@@ -384,6 +394,11 @@ class GameEngine:
             output = {
                 "game": {
                     "id": game_id,
+                    "random_seed": (
+                        self.game_config.random_seed
+                        if self.game_config.random_seed is not None
+                        else game_id
+                    ),
                     "timestamp": timestamp,
                     "num_players": self.game_config.num_players,
                     "num_rounds": self.game_config.num_rounds,

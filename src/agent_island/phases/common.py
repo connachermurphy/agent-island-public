@@ -1,7 +1,9 @@
 import random
 
 
-def permute_player_ids(player_ids: list[str]) -> list[str]:
+def permute_player_ids(
+    player_ids: list[str], rng: random.Random | None = None
+) -> list[str]:
     """
     Permute the player IDs in a random order.
 
@@ -11,4 +13,5 @@ def permute_player_ids(player_ids: list[str]) -> list[str]:
     Returns:
         list[str]: The permuted player IDs
     """
-    return random.sample(player_ids, k=len(player_ids))
+    generator = rng if rng is not None else random
+    return generator.sample(player_ids, k=len(player_ids))

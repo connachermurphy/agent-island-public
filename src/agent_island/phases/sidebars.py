@@ -56,10 +56,12 @@ def phase_sidebars(
     )
 
     for exchange in range(num_exchanges):
-        for player_id in permute_player_ids(active):
+        for player_id in permute_player_ids(active, context.rng):
             player = next(p for p in context.players if p.config.player_id == player_id)
 
-            candidates = permute_player_ids([pid for pid in active if pid != player_id])
+            candidates = permute_player_ids(
+                [pid for pid in active if pid != player_id], context.rng
+            )
 
             memory_context = player.memory.render()
             visible_events = context.history.render_for_player(player_id)

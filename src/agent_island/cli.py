@@ -90,6 +90,7 @@ def main() -> None:
         round_phase_config_overrides=game_data.get("round_phase_config_overrides", {}),
         log_prefix=game_data.get("log_prefix", "gameplay"),
         game_id=game_data.get("game_id"),
+        random_seed=game_data.get("random_seed"),
     )
 
     human_ids = {p.config.player_id for p in players if p.config.player_type == "human"}
