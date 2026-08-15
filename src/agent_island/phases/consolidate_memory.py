@@ -1,3 +1,4 @@
+from ..player import PlayerActionContext, PlayerActionKind, PlayerActionPhase
 from ..round import RoundContext
 from .common import permute_player_ids
 
@@ -24,9 +25,17 @@ def phase_consolidate_memory(context: RoundContext) -> None:
         )
 
         context.logger.info(f"Player {player_id} is consolidating memory")
-        player.memory.consolidate(
-            player=player,
-            history=context.history,
+        action_context = PlayerActionContext(
             round_index=context.round_index,
-            rules_prompt=context.rules_prompt,
+            round_type=context.round_type,
+            phase=PlayerActionPhase.MEMORY_CONSOLIDATION,
+            action=PlayerActionKind.MEMORY_CONSOLIDATION,
+            scope_id=f"round-{context.round_index}:memory:{player_id}",
         )
+        with player.action_scope(action_context):
+            player.memory.consolidate(
+                player=player,
+                history=context.history,
+                round_index=context.round_index,
+                rules_prompt=context.rules_prompt,
+            )

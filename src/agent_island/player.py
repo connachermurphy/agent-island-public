@@ -3,7 +3,9 @@ import queue
 import re
 import time
 from abc import ABC, abstractmethod
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass, field
+from enum import StrEnum
 from typing import Callable, Optional, Protocol
 
 from openrouter import OpenRouter
@@ -46,6 +48,52 @@ class ChoiceResponse:
     metadata: dict | None = None
 
 
+class PlayerActionPhase(StrEnum):
+    """Semantic game phase containing a player action."""
+
+    SIDEBAR = "sidebar"
+    PITCH = "pitch"
+    VOTE = "vote"
+    MEMORY_CONSOLIDATION = "memory_consolidation"
+    POSTGAME = "postgame"
+
+
+class PlayerActionKind(StrEnum):
+    """Typed action requested from a player within a phase."""
+
+    SIDEBAR_PARTNER_CHOICE = "sidebar_partner_choice"
+    SIDEBAR_MESSAGE = "sidebar_message"
+    PITCH = "pitch"
+    VOTE = "vote"
+    MEMORY_CONSOLIDATION = "memory_consolidation"
+    OPPONENT_QUIPS = "opponent_quips"
+
+
+@dataclass(frozen=True)
+class PlayerActionContext:
+    """Stable semantic metadata for one model-facing game action."""
+
+    round_index: int
+    round_type: str
+    phase: PlayerActionPhase
+    action: PlayerActionKind
+    scope_id: str
+    conversation_id: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.round_index < 1:
+            raise ValueError("round_index must be positive")
+        if not self.round_type:
+            raise ValueError("round_type must not be empty")
+        if not self.scope_id:
+            raise ValueError("scope_id must not be empty")
+        if self.phase == PlayerActionPhase.SIDEBAR:
+            if not self.conversation_id:
+                raise ValueError("sidebar actions require a conversation_id")
+        elif self.conversation_id is not None:
+            raise ValueError("conversation_id is only valid for sidebar actions")
+
+
 class FreeCollector(Protocol):
     def collect(self, system_prompt: str, context: str, action: str) -> str: ...
 
@@ -61,6 +109,17 @@ class ChoiceCollector(Protocol):
 class Player(ABC):
     config: PlayerConfig
     memory: MemoryStrategy
+
+    def action_scope(
+        self, action_context: PlayerActionContext
+    ) -> AbstractContextManager[None]:
+        """Expose typed action metadata without changing response signatures.
+
+        Implementations that need lifecycle-aware behavior may override this
+        hook. Existing players inherit a no-op context manager.
+        """
+        del action_context
+        return nullcontext()
 
     @abstractmethod
     def free_response(

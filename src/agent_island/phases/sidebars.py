@@ -1,3 +1,4 @@
+from ..player import PlayerActionContext, PlayerActionKind, PlayerActionPhase
 from ..round import RoundContext
 from .common import permute_player_ids
 
@@ -96,13 +97,26 @@ def phase_sidebars(
                 num_exchanges,
             )
 
-            response = player.choice_response(
-                system_prompt=system_prompt,
-                context=visible_events,
-                options=candidates,
-                action=action,
-                llm_instructions=llm_instructions,
+            conversation_id = (
+                f"round-{context.round_index}:exchange-{exchange + 1}:"
+                f"initiator-{player_id}"
             )
+            action_context = PlayerActionContext(
+                round_index=context.round_index,
+                round_type=context.round_type,
+                phase=PlayerActionPhase.SIDEBAR,
+                action=PlayerActionKind.SIDEBAR_PARTNER_CHOICE,
+                scope_id=conversation_id,
+                conversation_id=conversation_id,
+            )
+            with player.action_scope(action_context):
+                response = player.choice_response(
+                    system_prompt=system_prompt,
+                    context=visible_events,
+                    options=candidates,
+                    action=action,
+                    llm_instructions=llm_instructions,
+                )
 
             metadata = dict(response.metadata) if response.metadata else {}
             metadata["sidebar_selection"] = response.selected
@@ -133,6 +147,7 @@ def phase_sidebars(
                     initiator_id=player_id,
                     target_id=response.selected,
                     messages_per_exchange=messages_per_exchange,
+                    conversation_id=conversation_id,
                 )
             else:
                 context.logger.warning(
@@ -145,6 +160,7 @@ def _run_sidebar(
     initiator_id: str,
     target_id: str,
     messages_per_exchange: int,
+    conversation_id: str,
 ) -> None:
     """Run a private sidebar conversation between two players."""
     pair_visibility = [initiator_id, target_id]
@@ -210,11 +226,20 @@ def _run_sidebar(
             messages_per_exchange,
         )
 
-        response = player.free_response(
-            system_prompt=system_prompt,
-            context=visible_events,
-            action=action,
+        action_context = PlayerActionContext(
+            round_index=context.round_index,
+            round_type=context.round_type,
+            phase=PlayerActionPhase.SIDEBAR,
+            action=PlayerActionKind.SIDEBAR_MESSAGE,
+            scope_id=conversation_id,
+            conversation_id=conversation_id,
         )
+        with player.action_scope(action_context):
+            response = player.free_response(
+                system_prompt=system_prompt,
+                context=visible_events,
+                action=action,
+            )
 
         if player.config.player_type == "human":
             prompt = action

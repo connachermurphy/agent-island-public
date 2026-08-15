@@ -1,3 +1,4 @@
+from ..player import PlayerActionContext, PlayerActionKind, PlayerActionPhase
 from ..round import RoundContext
 from .common import permute_player_ids
 
@@ -63,11 +64,19 @@ def phase_pitches(context: RoundContext) -> None:
 </character>
         """
 
-        response = player.free_response(
-            system_prompt=system_prompt,
-            context=visible_events,
-            action=action,
+        action_context = PlayerActionContext(
+            round_index=context.round_index,
+            round_type=context.round_type,
+            phase=PlayerActionPhase.PITCH,
+            action=PlayerActionKind.PITCH,
+            scope_id=f"round-{context.round_index}:pitch:{player_id}",
         )
+        with player.action_scope(action_context):
+            response = player.free_response(
+                system_prompt=system_prompt,
+                context=visible_events,
+                action=action,
+            )
 
         if player.config.player_type == "human":
             prompt = action

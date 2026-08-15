@@ -1,5 +1,6 @@
 import re
 
+from ..player import PlayerActionContext, PlayerActionKind, PlayerActionPhase
 from ..round import RoundContext
 from .common import permute_player_ids
 
@@ -53,11 +54,19 @@ def phase_opponent_quips(context: RoundContext) -> None:
             "Write one `<quip>` tag per opponent."
         )
 
-        response = player.free_response(
-            system_prompt=system_prompt,
-            context=visible_events,
-            action=action,
+        action_context = PlayerActionContext(
+            round_index=context.round_index,
+            round_type=context.round_type,
+            phase=PlayerActionPhase.POSTGAME,
+            action=PlayerActionKind.OPPONENT_QUIPS,
+            scope_id=f"round-{context.round_index}:quips:{player_id}",
         )
+        with player.action_scope(action_context):
+            response = player.free_response(
+                system_prompt=system_prompt,
+                context=visible_events,
+                action=action,
+            )
 
         quips = QUIP_RE.findall(response.text)
 

@@ -1,3 +1,4 @@
+from ..player import PlayerActionContext, PlayerActionKind, PlayerActionPhase
 from ..round import RoundContext
 from .common import permute_player_ids
 
@@ -89,13 +90,21 @@ Here, we assume X and Y are player IDs."""
 </character>
 """
 
-        response = player.choice_response(
-            system_prompt=system_prompt,
-            context=visible_events,
-            options=candidates_for_voter,
-            action=action,
-            llm_instructions=llm_instructions,
+        action_context = PlayerActionContext(
+            round_index=context.round_index,
+            round_type=context.round_type,
+            phase=PlayerActionPhase.VOTE,
+            action=PlayerActionKind.VOTE,
+            scope_id=f"round-{context.round_index}:vote:{voter}",
         )
+        with player.action_scope(action_context):
+            response = player.choice_response(
+                system_prompt=system_prompt,
+                context=visible_events,
+                options=candidates_for_voter,
+                action=action,
+                llm_instructions=llm_instructions,
+            )
 
         if response.selected:
             vote_tally[response.selected] = vote_tally.get(response.selected, 0) + 1
